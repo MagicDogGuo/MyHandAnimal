@@ -7,6 +7,10 @@
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
 
+# SteamingAssets 快取
+[Aa]ssets/[Ss]treamingAssets/aa/
+[Aa]ssets/[Ss]treamingAssets/aa.meta
+
 # MemoryCaptures 可能含有 Profiler 資料
 [Mm]emory[Cc]aptures/
 
@@ -64,3 +68,23 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 [Aa]ssets/[Ss]treamingAssets/aa.meta
 [Aa]ssets/[Ss]treamingAssets/aa/*
+
+# IDE - JetBrains Rider
+.idea/
+*.iml
+.idea_modules/
+
+# IDE - VSCode
+.vscode/
+
+# macOS
+.DS_Store
+*.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Rider
+[Aa]ssets/[Pp]lugins/[Ee]ditor/[Jj]etBrains*
+
