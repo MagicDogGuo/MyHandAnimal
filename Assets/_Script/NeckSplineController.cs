@@ -21,6 +21,13 @@ public class NeckSplineController : MonoBehaviour
     [Tooltip("鴨身體 Transform（Spline 終點）")]
     public Transform duckBody;
 
+    [Header("Knot 端點位置")]
+    [Tooltip("第一個 Knot 的位置來源（未設定則使用 duckBody）")]
+    public Transform knotStart;
+
+    [Tooltip("最後一個 Knot 的位置來源（未設定則使用 duckHead）")]
+    public Transform knotEnd;
+
     [Header("脖子柔軟度")]
     [Tooltip("中間控制點數量（越多越軟，0 = 直線）")]
     public int midKnotCount = 2;
@@ -30,6 +37,10 @@ public class NeckSplineController : MonoBehaviour
 
     [Tooltip("弧形偏移的方向（預設向下，模擬重力垂墜）")]
     public Vector3 arcAxis = Vector3.down;
+
+    [Header("身體旋轉")]
+    [Tooltip("Body Y 軸朝向 Head 的旋轉速度（度/秒），0 = 關閉")]
+    public float bodyRotateSpeed = 90f;
 
     [Header("脖子限制")]
     [Tooltip("脖子最大長度（公尺）；超過時對身體施拉力")]
@@ -52,6 +63,14 @@ public class NeckSplineController : MonoBehaviour
         RebuildKnotCount();
     }
 
+    void FixedUpdate()
+    {
+        if (duckHead == null || duckBody == null) return;
+
+        UpdateBodyRotation();
+        HandleNeckPull();
+    }
+
     void LateUpdate()
     {
         if (duckHead == null || duckBody == null) return;
@@ -62,7 +81,6 @@ public class NeckSplineController : MonoBehaviour
             RebuildKnotCount();
 
         UpdateSplineKnots();
-        HandleNeckPull();
     }
 
     /// <summary>
@@ -76,7 +94,7 @@ public class NeckSplineController : MonoBehaviour
 
         spline.Clear();
         for (int i = 0; i < required; i++)
-            spline.Add(new BezierKnot(float3.zero));
+            spline.Add(new BezierKnot(float3.zero), TangentMode.AutoSmooth);
 
         _lastKnotCount = required;
     }
@@ -91,12 +109,11 @@ public class NeckSplineController : MonoBehaviour
         var spline = _splineContainer.Spline;
         int total = spline.Count;
 
-        Vector3 bodyLocal = transform.InverseTransformPoint(duckBody.position);
-        Vector3 headLocal = transform.InverseTransformPoint(duckHead.position);
+        Transform startTrans = knotStart != null ? knotStart : duckBody;
+        Transform endTrans   = knotEnd   != null ? knotEnd   : duckHead;
 
-        // 切線長度 = 段距的 40%，讓曲線自然彎曲
-        Vector3 seg = (headLocal - bodyLocal) / (total - 1);
-        Vector3 tangent = seg * 0.4f;
+        Vector3 bodyLocal = transform.InverseTransformPoint(startTrans.position);
+        Vector3 headLocal = transform.InverseTransformPoint(endTrans.position);
 
         // arcAxis 轉成 local space
         Vector3 arcAxisLocal = transform.InverseTransformDirection(arcAxis.normalized);
@@ -110,12 +127,40 @@ public class NeckSplineController : MonoBehaviour
             float sinWeight = Mathf.Sin(t * Mathf.PI);
             pos += arcAxisLocal * (arcHeight * sinWeight);
 
-            spline.SetKnot(i, new BezierKnot(
-                (float3)(Vector3)pos,
-                (float3)(-tangent),
-                (float3)(tangent)
-            ));
+            spline.SetKnot(i, new BezierKnot((float3)(Vector3)pos));
+            spline.SetTangentMode(i, TangentMode.AutoSmooth);
         }
+    }
+
+    /// <summary>
+    /// 依 Head 的水平位置，讓 Body 在 Y 軸上朝向 Head。
+    /// 使用 angularVelocity 驅動，Freeze Rotation X/Z 才能正確生效；
+    /// MoveRotation 會繞過 Freeze Constraints，所以不適用。
+    /// </summary>
+    void UpdateBodyRotation()
+    {
+        if (_bodyRb == null || bodyRotateSpeed <= 0f) return;
+
+        Vector3 dir = duckHead.position - duckBody.position;
+        dir.y = 0f;
+        if (dir.sqrMagnitude < 0.0001f)
+        {
+            Vector3 av = _bodyRb.angularVelocity;
+            av.y = 0f;
+            _bodyRb.angularVelocity = av;
+            return;
+        }
+
+        float targetY   = Quaternion.LookRotation(-dir).eulerAngles.y;
+        float currentY  = _bodyRb.rotation.eulerAngles.y;
+        float angleDiff = Mathf.DeltaAngle(currentY, targetY);
+
+        // 比例控制：角度差越大轉越快，上限為 bodyRotateSpeed（度/秒）
+        float maxRadSec   = bodyRotateSpeed * Mathf.Deg2Rad;
+        float yAngularVel = Mathf.Clamp(angleDiff * Mathf.Deg2Rad * 10f, -maxRadSec, maxRadSec);
+
+        // 只寫 Y 軸角速度；X/Z 由 Freeze Constraints 維持在 0
+        _bodyRb.angularVelocity = new Vector3(0f, yAngularVel, 0f);
     }
 
     /// <summary>
