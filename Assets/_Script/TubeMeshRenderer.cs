@@ -12,7 +12,10 @@ using Unity.Mathematics;
 public class TubeMeshRenderer : MonoBehaviour
 {
     [Header("Tube 幾何設定")]
-    public float radius = 0.04f;
+    [Tooltip("Spline 起點半徑")]
+    public float startRadius = 0.06f;
+    [Tooltip("Spline 終點半徑")]
+    public float endRadius = 0.02f;
     public int lengthSegments = 12;
     public int radialSegments = 6;
 
@@ -73,13 +76,15 @@ public class TubeMeshRenderer : MonoBehaviour
             // 文件 5-3：依實際弧長計算 UV.y，避免拉伸
             float arcLength = splineLength * t;
 
+            float currentRadius = Mathf.Lerp(startRadius, endRadius, t);
+
             for (int j = 0; j <= radialSegments; j++)
             {
                 float angle = j / (float)radialSegments * Mathf.PI * 2f;
                 Vector3 radialDir = Mathf.Cos(angle) * right + Mathf.Sin(angle) * upV;
                 int idx = i * (radialSegments + 1) + j;
 
-                vertices[idx] = (Vector3)pos + radialDir * radius;
+                vertices[idx] = (Vector3)pos + radialDir * currentRadius;
                 normals[idx]  = radialDir;
 
                 // 文件 5-3 的 UV 公式
@@ -121,7 +126,8 @@ public class TubeMeshRenderer : MonoBehaviour
     {
         radialSegments = Mathf.Max(3, radialSegments);
         lengthSegments = Mathf.Max(1, lengthSegments);
-        radius         = Mathf.Max(0.001f, radius);
+        startRadius    = Mathf.Max(0.001f, startRadius);
+        endRadius      = Mathf.Max(0.001f, endRadius);
     }
 #endif
 }
