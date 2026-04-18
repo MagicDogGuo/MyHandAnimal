@@ -3,7 +3,7 @@ using Oculus.Interaction.Input;
 
 /// <summary>
 /// 讓鵝頭 GameObject 跟隨 VR 左手手腕位置與旋轉，
-/// 並根據手部開闔（指尖到手腕平均距離）驅動嘴部下顎骨旋轉。
+/// 並根據手部開闔（FingerPinchGrabAPI 捏合分數）驅動嘴部下顎骨旋轉。
 ///
 /// 使用 Meta SDK Interaction SDK 的 IHand 介面取得手部資料，
 /// 不再依賴舊版 OVRHand / OVRSkeleton。
@@ -56,12 +56,14 @@ public class GooseHeadHandController : MonoBehaviour
     public float jawSmoothing = 12f;
 
     // ── 開合偵測 ──────────────────────────────────────────────────────────
-    [Header("手部開合偵測（指尖到手腕距離）")]
-    [Tooltip("握拳時四指尖到手腕的平均距離（公尺）")]
-    public float handClosedDist = 0.06f;
+    [Header("手部開合偵測（FingerPinchGrabAPI）")]
+    [Tooltip("捏合分數低於此值視為完全張開（實測 avgPinch 約 0~0.25，建議 0.03）")]
+    [Range(0f, 0.5f)]
+    public float pinchOpenThreshold = 0.03f;
 
-    [Tooltip("完全張開時四指尖到手腕的平均距離（公尺）")]
-    public float handOpenDist = 0.13f;
+    [Tooltip("捏合分數高於此值視為完全閉合（實測 avgPinch 約 0~0.25，建議 0.18）")]
+    [Range(0f, 0.5f)]
+    public float pinchClosedThreshold = 0.18f;
 
     // ── 除錯 ──────────────────────────────────────────────────────────────
     [Header("除錯")]
@@ -74,14 +76,6 @@ public class GooseHeadHandController : MonoBehaviour
 
     // ── 私有狀態 ──────────────────────────────────────────────────────────
     private float _smoothedOpenness;
-
-    private static readonly HandJointId[] TipJointIds =
-    {
-        HandJointId.HandIndexTip,
-        HandJointId.HandMiddleTip,
-        HandJointId.HandRingTip,
-        HandJointId.HandPinkyTip,
-    };
 
     // ─────────────────────────────────────────────────────────────────────
     void LateUpdate()
@@ -119,6 +113,8 @@ public class GooseHeadHandController : MonoBehaviour
         float rawOpenness = CalculateHandOpenness();
         _smoothedOpenness = Mathf.Lerp(_smoothedOpenness, rawOpenness, jawSmoothing * Time.deltaTime);
 
+        Debug.Log($"[GooseHead] rawOpenness={rawOpenness:F2}");
+
         debugCurrentOpenness = _smoothedOpenness;
         if (debugLogOpenness)
             Debug.Log($"[GooseHead] openness={_smoothedOpenness:F2}");
@@ -131,29 +127,23 @@ public class GooseHeadHandController : MonoBehaviour
     // ── 開合度計算 ────────────────────────────────────────────────────────
     /// <summary>
     /// 回傳 0（握拳）到 1（完全張開）的手部開闔程度。
-    /// 計算四根指尖到手腕根骨的平均歐氏距離，
-    /// 再對 [handClosedDist, handOpenDist] 區間正規化。
+    /// 直接使用 IHand.GetFingerPinchStrength，取四指平均後反轉。
     /// </summary>
     float CalculateHandOpenness()
     {
-        if (!_hand.GetJointPose(HandJointId.HandWristRoot, out Pose wristPose)) return 0f;
+        float avgPinch = (
+            _hand.GetFingerPinchStrength(HandFinger.Index)  +
+            _hand.GetFingerPinchStrength(HandFinger.Middle) +
+            _hand.GetFingerPinchStrength(HandFinger.Ring)   +
+            _hand.GetFingerPinchStrength(HandFinger.Pinky)
+        ) / 4f;
+        Debug.Log($"[GooseHead] avgPinch={avgPinch:F2}");
 
-        float totalDist = 0f;
-        int   count     = 0;
 
-        foreach (var tipId in TipJointIds)
-        {
-            if (_hand.GetJointPose(tipId, out Pose tipPose))
-            {
-                totalDist += Vector3.Distance(tipPose.position, wristPose.position);
-                count++;
-            }
-        }
+        float range = pinchClosedThreshold - pinchOpenThreshold;
+        if (range <= 0f) return 1f - avgPinch;
 
-        if (count == 0) return 0f;
-
-        float avgDist = totalDist / count;
-        return Mathf.Clamp01((avgDist - handClosedDist) / (handOpenDist - handClosedDist));
+        return 1f - Mathf.Clamp01((avgPinch - pinchOpenThreshold) / range);
     }
 
     // ── Gizmos ────────────────────────────────────────────────────────────

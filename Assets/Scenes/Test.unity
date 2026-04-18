@@ -666,6 +666,10 @@ PrefabInstance:
       propertyPath: m_Height
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3903482225804038118, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4148778239110795873, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
       propertyPath: m_Name
       value: '[BuildingBlock] OVRInteractionComprehensive'
@@ -2187,7 +2191,7 @@ MonoBehaviour:
   requestRecordAudioPermissionOnStartup: 0
   requestPassthroughCameraAccessPermissionOnStartup: 0
   _localDimming: 1
-  _trackingOriginType: 1
+  _trackingOriginType: 0
   usePositionTracking: 1
   useRotationTracking: 1
   useIPDInPositionTracking: 1
@@ -2242,7 +2246,7 @@ Transform:
   m_GameObject: {fileID: 850586834}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.499, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3702,7 +3706,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _hand: {fileID: 803136688}
-  positionOffset: {x: 0, y: 0, z: 0}
+  positionOffset: {x: 0, y: 0, z: 0.1}
   rotationOffset: {x: 0, y: 180, z: 0}
   positionSmoothing: 20
   rotationSmoothing: 20
@@ -3710,8 +3714,8 @@ MonoBehaviour:
   jawClosedRotation: {x: 0, y: 0, z: 0}
   jawOpenRotation: {x: 0, y: -30, z: 0}
   jawSmoothing: 12
-  handClosedDist: 0.06
-  handOpenDist: 0.13
+  pinchOpenThreshold: 0.15
+  pinchClosedThreshold: 0.3
   debugLogOpenness: 0
   debugCurrentOpenness: 0
 --- !u!1 &1481131095
@@ -4210,7 +4214,7 @@ Transform:
   m_GameObject: {fileID: 1725400552}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.0405, y: 0, z: -0.0061}
+  m_LocalPosition: {x: 0.0166, y: 0, z: 0.0064}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
