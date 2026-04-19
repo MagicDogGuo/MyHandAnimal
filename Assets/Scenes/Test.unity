@@ -1826,7 +1826,10 @@ MonoBehaviour:
   knotEnd: {fileID: 399732949}
   midKnotCount: 10
   arcHeight: 0.03
+  sCurveAmount: 0.15
   arcAxis: {x: 0, y: -1, z: 0}
+  neckExitAxis: {x: 0, y: 0, z: 1}
+  neckExitLength: 0.3
   bodyRotateSpeed: 90
   maxNeckLength: 1.2
   pullForce: 8
@@ -2248,7 +2251,7 @@ Transform:
   m_GameObject: {fileID: 850586834}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.499, z: 0}
+  m_LocalPosition: {x: 0, y: 0.406, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2288,6 +2291,7 @@ MonoBehaviour:
   _hand: {fileID: 1440493978}
   indexExtendedThreshold: 0.2
   fingerCurledMaxDist: 0.09
+  indexExtendedMinDist: 0.12
   activationFrames: 3
   moveSpeed: 0.5
   accelerationTime: 0.3
@@ -2888,8 +2892,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a47ccadcbe1745f44ab218f577d5bc52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startRadius: 0.035
-  endRadius: 0.025
+  startRadius: 0.025
+  endRadius: 0.035
   lengthSegments: 12
   radialSegments: 6
   uvTilingPerMeter: 2
@@ -2907,12 +2911,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   duckHead: {fileID: 1453077981}
   duckBody: {fileID: 1756547918}
-  knotStart: {fileID: 775858237}
-  knotEnd: {fileID: 1725400553}
+  knotStart: {fileID: 1725400553}
+  knotEnd: {fileID: 775858237}
   midKnotCount: 10
-  arcHeight: 0.15
+  arcHeight: 0
+  sCurveAmount: 0.05
   arcAxis: {x: 0, y: -1, z: 0}
-  bodyRotateSpeed: 90
+  neckExitAxis: {x: 0, y: 0, z: 0}
+  neckExitLength: 0
+  bodyRotateSpeed: 180
   maxNeckLength: 0.44
   pullForce: 29
 --- !u!114 &1051608944
@@ -3458,7 +3465,10 @@ MonoBehaviour:
   knotEnd: {fileID: 84155943}
   midKnotCount: 10
   arcHeight: 0.15
+  sCurveAmount: 0.15
   arcAxis: {x: 0, y: -1, z: 0}
+  neckExitAxis: {x: 0, y: 0, z: 1}
+  neckExitLength: 0.3
   bodyRotateSpeed: 90
   maxNeckLength: 0.2
   pullForce: 10
@@ -3766,7 +3776,7 @@ MonoBehaviour:
   rotationSmoothing: 20
   lowerJawBone: {fileID: 1872117639}
   jawClosedRotation: {x: 0, y: 0, z: 0}
-  jawOpenRotation: {x: 0, y: -30, z: 0}
+  jawOpenRotation: {x: 0, y: -60, z: 0}
   jawSmoothing: 12
   pinchOpenThreshold: 0.15
   pinchClosedThreshold: 0.3
@@ -5489,7 +5499,10 @@ MonoBehaviour:
   knotEnd: {fileID: 1481131096}
   midKnotCount: 10
   arcHeight: 0.03
+  sCurveAmount: 0.15
   arcAxis: {x: 0, y: -1, z: 0}
+  neckExitAxis: {x: 0, y: 0, z: 1}
+  neckExitLength: 0.3
   bodyRotateSpeed: 90
   maxNeckLength: 1.2
   pullForce: 8
@@ -5654,7 +5667,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
