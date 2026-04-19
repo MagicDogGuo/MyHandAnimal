@@ -36,6 +36,10 @@ public class GunGestureLocomotion : MonoBehaviour
     [Range(0.03f, 0.20f)]
     public float fingerCurledMaxDist = 0.09f;
 
+    [Tooltip("食指指尖到手腕距離長於此值（公尺）= 食指伸直。比讚時食指捲入拳頭，距離約 0.07~0.09，伸直約 0.14~0.18。")]
+    [Range(0.05f, 0.20f)]
+    public float indexExtendedMinDist = 0.12f;
+
     [Tooltip("需要同時滿足幾幀的手勢才啟動移動（防止誤觸）")]
     [Range(0, 10)]
     public int activationFrames = 3;
@@ -141,8 +145,12 @@ public class GunGestureLocomotion : MonoBehaviour
 #if UNITY_EDITOR
         if (debugForceGunGesture) return true;
 #endif
-        float indexPinch   = _hand.GetFingerPinchStrength(HandFinger.Index);
-        bool  indexExtended = indexPinch < indexExtendedThreshold;
+        float indexPinch = _hand.GetFingerPinchStrength(HandFinger.Index);
+        bool  indexLowPinch = indexPinch < indexExtendedThreshold;
+
+        // 食指指尖到手腕距離夠遠 = 食指真正伸直（排除比讚：食指捲入拳頭，距離短）
+        bool indexFarFromWrist = IsFingerExtendedByDist(HandJointId.HandIndexTip);
+        bool indexExtended = indexLowPinch && indexFarFromWrist;
 
         bool middleCurled = IsFingerCurledByDist(HandJointId.HandMiddleTip);
         bool ringCurled   = IsFingerCurledByDist(HandJointId.HandRingTip);
@@ -152,13 +160,16 @@ public class GunGestureLocomotion : MonoBehaviour
         if (debugLog)
         {
             _hand.GetJointPose(HandJointId.HandWristRoot, out Pose wrist);
+            _hand.GetJointPose(HandJointId.HandIndexTip,  out Pose idxTip);
             _hand.GetJointPose(HandJointId.HandMiddleTip, out Pose midTip);
             _hand.GetJointPose(HandJointId.HandRingTip,   out Pose ringTip);
             _hand.GetJointPose(HandJointId.HandPinkyTip,  out Pose pinkyTip);
+            float idxD   = Vector3.Distance(idxTip.position,   wrist.position);
             float midD   = Vector3.Distance(midTip.position,   wrist.position);
             float ringD  = Vector3.Distance(ringTip.position,  wrist.position);
             float pinkyD = Vector3.Distance(pinkyTip.position, wrist.position);
-            Debug.Log($"[GunGesture] indexPinch={indexPinch:F2}(ext={indexExtended}) | " +
+            Debug.Log($"[GunGesture] indexPinch={indexPinch:F2}(lowPinch={indexLowPinch}) " +
+                      $"idxDist={idxD:F3}(far={indexFarFromWrist}) | " +
                       $"midDist={midD:F3} ringDist={ringD:F3} pinkyDist={pinkyD:F3} | curled={othersCurled}");
         }
 
@@ -173,6 +184,17 @@ public class GunGestureLocomotion : MonoBehaviour
         if (!_hand.GetJointPose(HandJointId.HandWristRoot, out Pose wrist)) return false;
         if (!_hand.GetJointPose(tipJointId, out Pose tip)) return false;
         return Vector3.Distance(tip.position, wrist.position) < fingerCurledMaxDist;
+    }
+
+    /// <summary>
+    /// 指尖到手腕距離大於 indexExtendedMinDist 則視為該指伸直。
+    /// 用於排除「比讚」：食指捲進拳頭時距離短，不應判定為伸直。
+    /// </summary>
+    bool IsFingerExtendedByDist(HandJointId tipJointId)
+    {
+        if (!_hand.GetJointPose(HandJointId.HandWristRoot, out Pose wrist)) return false;
+        if (!_hand.GetJointPose(tipJointId, out Pose tip)) return false;
+        return Vector3.Distance(tip.position, wrist.position) > indexExtendedMinDist;
     }
 
     // ── 食指方向計算 ──────────────────────────────────────────────────────
