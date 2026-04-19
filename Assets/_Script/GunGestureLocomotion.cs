@@ -28,13 +28,13 @@ public class GunGestureLocomotion : MonoBehaviour
 
     // ── 手勢偵測門檻 ──────────────────────────────────────────────────────
     [Header("手勢偵測門檻")]
-    [Tooltip("食指 PinchStrength 低於此值 = 食指伸直。建議 0.15~0.25。")]
+    [Tooltip("食指 PinchStrength 低於此值 = 食指伸直（GetFingerPinchStrength：指尖靠近拇指程度）")]
     [Range(0f, 1f)]
     public float indexExtendedThreshold = 0.2f;
 
-    [Tooltip("其他三指（中/無名/小指）PinchStrength 均高於此值 = 握拳。建議 0.5~0.7。")]
-    [Range(0f, 1f)]
-    public float fingersCurledThreshold = 0.55f;
+    [Tooltip("中/無名/小指尖到手腕距離短於此值（公尺）= 握拳。握拳約 0.07~0.09，伸直約 0.14~0.18。")]
+    [Range(0.03f, 0.20f)]
+    public float fingerCurledMaxDist = 0.09f;
 
     [Tooltip("需要同時滿足幾幀的手勢才啟動移動（防止誤觸）")]
     [Range(0, 10)]
@@ -69,14 +69,31 @@ public class GunGestureLocomotion : MonoBehaviour
     public float debugSpeedRatio;
 
     // ── 私有狀態 ──────────────────────────────────────────────────────────
-    private float _currentSpeedRatio = 0f;   // 0~1 的速度比例
-    private int   _gestureFrameCount = 0;    // 連續偵測到手勢的幀數
+    private float _currentSpeedRatio = 0f;
+    private int   _gestureFrameCount = 0;
     private bool  _isMoving = false;
+
+#if UNITY_EDITOR
+    [Header("Editor 除錯（僅在 Editor 中可用）")]
+    [Tooltip("唯讀：P 鍵切換強制手槍手勢 ON/OFF")]
+    public bool debugForceGunGesture = false;
+#endif
 
     // ─────────────────────────────────────────────────────────────────────
     void Update()
     {
-        if (_hand == null || !_hand.IsConnected)
+#if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            debugForceGunGesture = !debugForceGunGesture;
+            Debug.Log($"[GunGesture] Editor 強制手槍手勢：{(debugForceGunGesture ? "ON" : "OFF")}");
+        }
+
+        bool handReady = debugForceGunGesture || (_hand != null && _hand.IsConnected);
+#else
+        bool handReady = _hand != null && _hand.IsConnected;
+#endif
+        if (!handReady)
         {
             DecelerateAndStop();
             return;
@@ -115,24 +132,47 @@ public class GunGestureLocomotion : MonoBehaviour
 
     // ── 手勢偵測 ──────────────────────────────────────────────────────────
     /// <summary>
-    /// 手槍手勢 = 食指伸直（低 Pinch）+ 中/無名/小指握拳（高 Pinch）。
+    /// 手槍手勢 = 食指伸直（低 PinchStrength）+ 中/無名/小指握拳（指尖到手腕距離短）。
+    /// GetFingerPinchStrength 只適合偵測「捏拇指」，不適合偵測「往手心捲」，
+    /// 因此中/無/小指改用指尖到手腕距離判斷。
     /// </summary>
     bool DetectGunGesture()
     {
-        float indexPinch  = _hand.GetFingerPinchStrength(HandFinger.Index);
-        float middlePinch = _hand.GetFingerPinchStrength(HandFinger.Middle);
-        float ringPinch   = _hand.GetFingerPinchStrength(HandFinger.Ring);
-        float pinkyPinch  = _hand.GetFingerPinchStrength(HandFinger.Pinky);
+#if UNITY_EDITOR
+        if (debugForceGunGesture) return true;
+#endif
+        float indexPinch   = _hand.GetFingerPinchStrength(HandFinger.Index);
+        bool  indexExtended = indexPinch < indexExtendedThreshold;
 
-        bool indexExtended = indexPinch  < indexExtendedThreshold;
-        bool othersCurled  = middlePinch > fingersCurledThreshold &&
-                             ringPinch   > fingersCurledThreshold &&
-                             pinkyPinch  > fingersCurledThreshold;
+        bool middleCurled = IsFingerCurledByDist(HandJointId.HandMiddleTip);
+        bool ringCurled   = IsFingerCurledByDist(HandJointId.HandRingTip);
+        bool pinkyCurled  = IsFingerCurledByDist(HandJointId.HandPinkyTip);
+        bool othersCurled = middleCurled && ringCurled && pinkyCurled;
 
         if (debugLog)
-            Debug.Log($"[GunGesture] index={indexPinch:F2} mid={middlePinch:F2} ring={ringPinch:F2} pinky={pinkyPinch:F2} | ext={indexExtended} curled={othersCurled}");
+        {
+            _hand.GetJointPose(HandJointId.HandWristRoot, out Pose wrist);
+            _hand.GetJointPose(HandJointId.HandMiddleTip, out Pose midTip);
+            _hand.GetJointPose(HandJointId.HandRingTip,   out Pose ringTip);
+            _hand.GetJointPose(HandJointId.HandPinkyTip,  out Pose pinkyTip);
+            float midD   = Vector3.Distance(midTip.position,   wrist.position);
+            float ringD  = Vector3.Distance(ringTip.position,  wrist.position);
+            float pinkyD = Vector3.Distance(pinkyTip.position, wrist.position);
+            Debug.Log($"[GunGesture] indexPinch={indexPinch:F2}(ext={indexExtended}) | " +
+                      $"midDist={midD:F3} ringDist={ringD:F3} pinkyDist={pinkyD:F3} | curled={othersCurled}");
+        }
 
         return indexExtended && othersCurled;
+    }
+
+    /// <summary>
+    /// 指尖到手腕距離小於 fingerCurledMaxDist 則視為該指握拳。
+    /// </summary>
+    bool IsFingerCurledByDist(HandJointId tipJointId)
+    {
+        if (!_hand.GetJointPose(HandJointId.HandWristRoot, out Pose wrist)) return false;
+        if (!_hand.GetJointPose(tipJointId, out Pose tip)) return false;
+        return Vector3.Distance(tip.position, wrist.position) < fingerCurledMaxDist;
     }
 
     // ── 食指方向計算 ──────────────────────────────────────────────────────
