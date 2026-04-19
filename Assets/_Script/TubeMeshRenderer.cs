@@ -37,11 +37,6 @@ public class TubeMeshRenderer : MonoBehaviour
         _meshFilter.mesh = _mesh;
     }
 
-    void LateUpdate()
-    {
-        RebuildMesh();
-    }
-
     public void RebuildMesh()
     {
         if (_splineContainer == null) return;
@@ -66,9 +61,18 @@ public class TubeMeshRenderer : MonoBehaviour
             spline.Evaluate(t, out float3 pos, out float3 tangent, out float3 up);
 
             Vector3 fwd = math.normalizesafe(tangent);
-            Vector3 upV = math.normalizesafe(up);
             if (fwd.sqrMagnitude < 0.0001f) fwd = Vector3.forward;
 
+            // 找出 t 兩側的 Knot，對 Rotation 做 Slerp 插值取得 up 向量
+            float tScaled = t * (spline.Count - 1);
+            int kA = Mathf.Clamp(Mathf.FloorToInt(tScaled), 0, spline.Count - 2);
+            int kB = kA + 1;
+            float knotBlend = tScaled - kA;
+            Quaternion rotA = (Quaternion)spline[kA].Rotation;
+            Quaternion rotB = (Quaternion)spline[kB].Rotation;
+            Vector3 upV = Quaternion.Slerp(rotA, rotB, knotBlend) * Vector3.up;
+
+            // 正交化：確保 right ⊥ fwd，upV ⊥ right
             Vector3 right = Vector3.Cross(fwd, upV).normalized;
             if (right.sqrMagnitude < 0.0001f) right = Vector3.right;
             upV = Vector3.Cross(right, fwd).normalized;

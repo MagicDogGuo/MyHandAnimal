@@ -32,11 +32,21 @@ public class NeckSplineController : MonoBehaviour
     [Tooltip("中間控制點數量（越多越軟，0 = 直線）")]
     public int midKnotCount = 2;
 
-    [Tooltip("弧形偏移量（正值 = 朝 arcAxis 方向拱起，負值 = 反向）")]
-    public float arcHeight = 0.15f;
+    [Tooltip("C 弧偏移量（正值 = 朝 arcAxis 方向拱起；sin(t·π)，兩端為 0、中央為峰值）")]
+    public float arcHeight = 0.0f;
 
-    [Tooltip("弧形偏移的方向（預設向下，模擬重力垂墜）")]
+    [Tooltip("S 形曲線偏移量（sin(t·2π)：前半段往 arcAxis 方向、後半段反向，形成 S 形）")]
+    public float sCurveAmount = 0.15f;
+
+    [Tooltip("弧形 / S 形偏移的方向（預設向下，模擬重力垂墜）")]
     public Vector3 arcAxis = Vector3.down;
+
+    [Header("脖子出射方向")]
+    [Tooltip("出射方向（knotStart 的 local space）；(1,0,0)=X軸、(0,1,0)=Y軸、(0,0,1)=Z軸，可自由混合")]
+    public Vector3 neckExitAxis = Vector3.forward;
+
+    [Tooltip("出射切線長度；越大曲線越貼合出射方向")]
+    public float neckExitLength = 0.3f;
 
     [Header("身體旋轉")]
     [Tooltip("Body Y 軸朝向 Head 的旋轉速度（度/秒），0 = 關閉")]
@@ -52,10 +62,12 @@ public class NeckSplineController : MonoBehaviour
     private SplineContainer _splineContainer;
     private Rigidbody _bodyRb;
     private int _lastKnotCount = -1;
+    private TubeMeshRenderer _tubeMesh;
 
     void Awake()
     {
         _splineContainer = GetComponent<SplineContainer>();
+        _tubeMesh = GetComponent<TubeMeshRenderer>();
 
         if (duckBody != null)
             _bodyRb = duckBody.GetComponent<Rigidbody>();
@@ -81,6 +93,9 @@ public class NeckSplineController : MonoBehaviour
             RebuildKnotCount();
 
         UpdateSplineKnots();
+
+        // Spline 更新完畢後立刻重建 Mesh，避免跨 LateUpdate 的一幀延遲
+        _tubeMesh?.RebuildMesh();
     }
 
     /// <summary>
@@ -118,17 +133,43 @@ public class NeckSplineController : MonoBehaviour
         // arcAxis 轉成 local space
         Vector3 arcAxisLocal = transform.InverseTransformDirection(arcAxis.normalized);
 
+        // knotStart / knotEnd 的旋轉轉至 SplineContainer local space
+        Quaternion worldToLocal = Quaternion.Inverse(transform.rotation);
+        Quaternion rotStart = worldToLocal * (startTrans.rotation);
+        Quaternion rotEnd   = worldToLocal * (endTrans.rotation);
+
+        // 出射切線方向 = neckExitAxis（knotStart local space）+ 弧形在 t=0 的斜率貢獻
+        // sin(t·π)  導數在 t=0 = π；sin(t·2π) 導數在 t=0 = 2π
+        Vector3 baseDir      = transform.InverseTransformDirection(startTrans.TransformDirection(neckExitAxis.normalized)).normalized;
+        Vector3 arcSlope     = arcAxisLocal * (arcHeight * Mathf.PI + sCurveAmount * 2f * Mathf.PI);
+        Vector3 exitDirLocal = (baseDir + arcSlope).normalized;
+        float3 tangentOut0   = (float3)(exitDirLocal * neckExitLength);
+
         for (int i = 0; i < total; i++)
         {
             float t = i / (float)(total - 1);
             Vector3 pos = Vector3.Lerp(bodyLocal, headLocal, t);
 
-            // sin(t*π)：兩端為 0，中央為 1，形成自然弧形
-            float sinWeight = Mathf.Sin(t * Mathf.PI);
-            pos += arcAxisLocal * (arcHeight * sinWeight);
+            // C 弧：sin(t·π)，兩端為 0，中央為峰值
+            float cArc = Mathf.Sin(t * Mathf.PI);
+            // S 弧：sin(t·2π)，前半段正、後半段負，形成 S 形
+            float sArc = Mathf.Sin(t * 2f * Mathf.PI);
+            pos += arcAxisLocal * (arcHeight * cArc + sCurveAmount * sArc);
 
-            spline.SetKnot(i, new BezierKnot((float3)(Vector3)pos));
-            spline.SetTangentMode(i, TangentMode.AutoSmooth);
+            // 將 knotStart → knotEnd 的旋轉 Slerp 插值後存入 Knot
+            quaternion knotRot = (quaternion)Quaternion.Slerp(rotStart, rotEnd, t);
+
+            if (i == 0)
+            {
+                // 第一個 Knot：TangentOut 鎖定為 knotStart X 軸方向（脖子出射方向）
+                spline.SetKnot(0, new BezierKnot((float3)(Vector3)pos, -tangentOut0, tangentOut0, knotRot));
+                spline.SetTangentMode(0, TangentMode.Broken);
+            }
+            else
+            {
+                spline.SetKnot(i, new BezierKnot((float3)(Vector3)pos, float3.zero, float3.zero, knotRot));
+                spline.SetTangentMode(i, TangentMode.AutoSmooth);
+            }
         }
     }
 
