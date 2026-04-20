@@ -1,5 +1,6 @@
 using UnityEngine;
 using Oculus.Interaction.Input;
+using Oculus.Interaction.Locomotion;
 
 /// <summary>
 /// 偵測右手「手槍手勢」（食指伸直 + 中/無名/小指握拳 + 大拇指抬起），
@@ -76,6 +77,7 @@ public class GunGestureLocomotion : MonoBehaviour
     private float _currentSpeedRatio = 0f;
     private int   _gestureFrameCount = 0;
     private bool  _isMoving = false;
+    private FirstPersonLocomotor _locomotor;
 
 #if UNITY_EDITOR
     [Header("Editor 除錯（僅在 Editor 中可用）")]
@@ -84,6 +86,14 @@ public class GunGestureLocomotion : MonoBehaviour
 #endif
 
     // ─────────────────────────────────────────────────────────────────────
+    void Awake()
+    {
+        // 找 Meta BuildingBlock 內建的 FirstPersonLocomotor（在 Camera Rig 子物件上）
+        _locomotor = GetComponentInChildren<FirstPersonLocomotor>();
+        if (_locomotor == null)
+            Debug.LogWarning("[GunGesture] 找不到 FirstPersonLocomotor，將直接修改 transform.position（無碰撞）");
+    }
+
     void Update()
     {
 #if UNITY_EDITOR
@@ -124,7 +134,17 @@ public class GunGestureLocomotion : MonoBehaviour
             if (debugLog)
                 Debug.Log($"[GunGesture] Moving direction={direction}, speed={_currentSpeedRatio * moveSpeed:F2}");
 
-            transform.position += direction * (_currentSpeedRatio * moveSpeed * Time.deltaTime);
+            Vector3 delta = direction * (_currentSpeedRatio * moveSpeed * Time.deltaTime);
+            if (_locomotor != null)
+            {
+                // 透過 FirstPersonLocomotor 的 Relative 事件移動，才會經過碰撞偵測並正確同步 Camera Rig
+                var evt = new LocomotionEvent(GetInstanceID(), delta,
+                    LocomotionEvent.TranslationType.Relative);
+                _locomotor.HandleLocomotionEvent(evt);
+            }
+            else
+                transform.position += delta;
+                
         }
         else
         {
