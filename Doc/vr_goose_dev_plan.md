@@ -107,7 +107,7 @@
 - D2 — Snap Grabbing 系統
 使用 Meta SDK Building Blocks 加入 **Hand Grab Interaction** Block（自動建立 HandGrabInteractor）。麵包 Prefab 掛 `Grabbable` + `HandGrabInteractable`，再加薄層 `BreadSnapToMouth.cs` 監聽 SDK 事件，抓取時吸附到 mouthAnchor（isKinematic = true），放開後恢復物理重力（isKinematic = false）。無需自行輪詢 OVRInput。
 - D3 — 巢判定 + foodCount 計數器
-巢設一個大隱形 Sphere Collider，麵包進入自動解除 Parent 並播放入巢動畫。int foodCount 累計，達標時顯示 Level Clear UI；掉水判定觸發 Fail UI + 重置。
+巢設一個大隱形 Sphere Collider，麵包進入自動解除 Parent。int foodCount 累計，達標時顯示 Level Clear UI；掉水判定觸發 Fail UI + 重置。
 - D4 — 移動平台 + Cone 光束系統
 移動平台用 Sine 曲線往返（Mathf.Sin）；巡邏員 Cone Trigger 以 Physics.OverlapSphere 或自訂 FOV 判定手部位置，命中即觸發「被發現」狀態。
 - D5 — 關卡管理 + UI 系統
