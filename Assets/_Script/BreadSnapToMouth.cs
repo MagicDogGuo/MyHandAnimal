@@ -1,26 +1,36 @@
+using System.Collections;
 using System.Linq;
 using Oculus.Interaction;
 using Oculus.Interaction.HandGrab;
+using Oculus.Interaction.Input;
 using UnityEngine;
 
 /// <summary>
 /// 掛在每個麵包 Prefab 上。
-/// 監聽 Meta SDK HandGrabInteractable 事件：
-///   抓取時 → 吸附到 mouthAnchor（isKinematic = true，SetParent）
-///   放開時 → 解除 Parent，恢復物理重力（isKinematic = false）
+/// 監聽 HandGrabInteractable 事件：
+///   抓取時 → SetParent 到 mouthAnchor，isKinematic = true
+///   放開時 → SetParent(null)，isKinematic = false（恢復物理）
 ///
-/// 場景設置：
-///   1. 麵包 Prefab 需同時掛 Rigidbody、Collider、Grabbable、
-///      HandGrabInteractable、BreadSnapToMouth。
-///   2. mouthAnchor → 鵝嘴錨點空物件（在 Inspector 指定，
-///      或透過 Tag "MouthAnchor" 自動搜尋）。
+/// LateUpdate 每幀強制 localPosition = snapLocalOffset，
+/// 防止 ISDK GrabFreeTransformer 每幀覆寫 world position 造成漂移。
+///
+/// 麵包 Prefab 需要：
+///   Rigidbody、Collider、Grabbable、HandGrabInteractable、BreadSnapToMouth
+///
+/// mouthAnchor：
+///   鵝頭 GameObject 下的子空物件，對齊嘴尖位置。
+///   在 Inspector 直接拖入，或建立 Tag "MouthAnchor" 自動搜尋。
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(HandGrabInteractable))]
 public class BreadSnapToMouth : MonoBehaviour
 {
+    [Header("抓取限制")]
+    [Tooltip("限制只有指定的手才能抓取麵包")]
+    public Handedness allowedHand = Handedness.Left;
+
     [Header("Snap 目標")]
-    [Tooltip("鵝嘴錨點 Transform（Inspector 直接拖入，或留空以 Tag 自動找）")]
+    [Tooltip("鵝嘴尖端錨點（Inspector 直接拖入，或留空以 Tag 自動找）")]
     public Transform mouthAnchor;
 
     [Header("Snap 設定")]
@@ -38,8 +48,8 @@ public class BreadSnapToMouth : MonoBehaviour
 
     // ── Snap 動畫 ─────────────────────────────────────────────────────────
     private float _snapTimer;
-    private Vector3 _snapStartPos;
-    private Quaternion _snapStartRot;
+    private Vector3 _snapStartLocalPos;
+    private Quaternion _snapStartLocalRot;
 
     // ─────────────────────────────────────────────────────────────────────
     void Awake()
@@ -72,36 +82,38 @@ public class BreadSnapToMouth : MonoBehaviour
     // ── 抓取事件 ──────────────────────────────────────────────────────────
     private void OnGrabbed(IInteractorView interactor)
     {
+        // 非允許的手 → 下一幀強制 release，不執行 snap
+        if (interactor is HandGrabInteractor hgi &&
+            hgi.Hand?.Handedness != allowedHand)
+        {
+            StartCoroutine(ForceReleaseNextFrame(hgi));
+            return;
+        }
+
         if (mouthAnchor == null || _isSnapped) return;
 
         _isSnapped = true;
-        _rb.isKinematic = true;
-        _rb.linearVelocity = Vector3.zero;
+        _rb.isKinematic    = true;
+        _rb.linearVelocity  = Vector3.zero;
         _rb.angularVelocity = Vector3.zero;
 
         transform.SetParent(mouthAnchor);
+        _snapStartLocalPos = transform.localPosition;
+        _snapStartLocalRot = transform.localRotation;
+        _snapTimer         = 0f;
+    }
 
-        if (snapDuration <= 0f)
-        {
-            // 瞬間吸附
-            transform.localPosition = snapLocalOffset;
-            transform.localRotation = Quaternion.identity;
-        }
-        else
-        {
-            // 緩動吸附動畫
-            _snapStartPos = transform.localPosition;
-            _snapStartRot = transform.localRotation;
-            _snapTimer    = 0f;
-        }
+    // ── 非允許手的強制釋放（延一幀避免事件重入）─────────────────────────────
+    private IEnumerator ForceReleaseNextFrame(HandGrabInteractor interactor)
+    {
+        yield return null;
+        interactor.ForceRelease();
     }
 
     // ── 放開事件 ──────────────────────────────────────────────────────────
     private void OnReleased(IInteractorView interactor)
     {
-        // 還有其他 Interactor 仍在抓取，保持吸附
         if (_interactable.SelectingInteractorViews.Any()) return;
-
         Detach();
     }
 
@@ -115,23 +127,27 @@ public class BreadSnapToMouth : MonoBehaviour
         _rb.isKinematic = false;
     }
 
-    // ── Snap 動畫 Update ──────────────────────────────────────────────────
-    void Update()
+    // ── LateUpdate：動畫 + 強制鎖定位置（對抗 ISDK GrabTransformer）──────
+    void LateUpdate()
     {
-        if (!_isSnapped || snapDuration <= 0f) return;
-        if (_snapTimer >= snapDuration) return;
+        if (!_isSnapped) return;
 
-        _snapTimer += Time.deltaTime;
-        float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_snapTimer / snapDuration));
-
-        transform.localPosition = Vector3.Lerp(_snapStartPos, snapLocalOffset, t);
-        transform.localRotation = Quaternion.Slerp(_snapStartRot, Quaternion.identity, t);
+        if (snapDuration > 0f && _snapTimer < snapDuration)
+        {
+            _snapTimer += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(_snapTimer / snapDuration));
+            transform.localPosition = Vector3.Lerp(_snapStartLocalPos, snapLocalOffset, t);
+            transform.localRotation = Quaternion.Slerp(_snapStartLocalRot, Quaternion.identity, t);
+        }
+        else
+        {
+            // 動畫結束後每幀強制保持，防止 ISDK 拉走
+            transform.localPosition = snapLocalOffset;
+            transform.localRotation = Quaternion.identity;
+        }
     }
 
     // ── Spawn 時隨機外觀（由 Spawner 呼叫）────────────────────────────────
-    /// <summary>
-    /// 讓麵包在 Spawn 時帶有輕微縮放與旋轉變化，增加視覺多樣性。
-    /// </summary>
     public void RandomizeAppearance()
     {
         float scale = Random.Range(0.9f, 1.1f);
