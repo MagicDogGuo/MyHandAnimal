@@ -51,7 +51,11 @@ public class Bread : MonoBehaviour
     /// </summary>
     public void ResetToSpawn()
     {
+        // 先嘗試透過 BreadSnapToMouth 正常解除（嘴部 Parent）
         Detach();
+
+        // 無論麵包是在嘴裡、巢裡還是飛行中，都強制解除任何 Parent
+        transform.SetParent(null);
 
         transform.position   = _spawnPosition;
         transform.rotation   = _spawnRotation;
@@ -59,8 +63,8 @@ public class Bread : MonoBehaviour
 
         if (_rb != null)
         {
-            _rb.isKinematic    = false;
-            _rb.linearVelocity = Vector3.zero;
+            _rb.isKinematic     = false;
+            _rb.linearVelocity  = Vector3.zero;
             _rb.angularVelocity = Vector3.zero;
         }
     }
