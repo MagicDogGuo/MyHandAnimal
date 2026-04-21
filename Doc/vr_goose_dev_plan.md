@@ -15,7 +15,7 @@
 | 關卡 | 名稱 | 訓練核心 | 麵包 |
 |------|------|---------|------|
 | 第一關 | Straight to the Nest | 伸長 → 咬 → 縮回 | 🍞 白吐司 |
-| 第二關 | Multitasking | 左右橫向移動 | 🥖 長棍麵包 |
+| 第二關 | Multitasking | 左右橫向移動 + 鉤子拉食物 | 🥖 長棍麵包 |
 | 第三關 | The Moving Meal | 預判移動目標 | 🍩 甜甜圈 |
 | 第四關 | 視線躲避 | 躲避巡邏光束 | 🥐 可頌 |
 | 第五關 | 時機抓取 | 綜合第三、四關 | 🍞🥖🍩 混合 |
@@ -38,10 +38,12 @@
 
 | 項目 | 內容 |
 |------|------|
-| **場景配置** | 岸邊散落 3 塊麵包（左、中、右） |
+| **場景配置** | 岸邊散落 3 塊麵包（左、中、右），其中 1～2 塊距離較遠，需用鉤子拉近才能咬到 |
 | **過關條件** | `foodCount == 3` 顯示 Level Clear；順序不限 |
 | **失敗條件** | 任一麵包落水 → 三塊全部重置 |
-| **核心機制** | 巢內整數計數器 `int foodCount` |
+| **核心機制** | 巢內整數計數器 `int foodCount`；新增**實體長鉤子道具**，玩家用手握住鉤子尾端，伸出去直接勾住遠處麵包，再往自己方向拉回 |
+| **鉤子互動流程** | ① 場景中有一把長鉤子（Long Hook）靜置在碼頭邊 → ② 玩家用手抓住鉤子握柄 → ③ 伸手向前，讓鉤頭碰觸遠處麵包（Trigger 接觸判定，無需投擲） → ④ 接觸後麵包被鉤住，隨鉤子移動 → ⑤ 把麵包拉到嘴邊距離後，鬆開鉤子改用嘴咬取 |
+| **⚠️ 待補強** | 鉤頭 Collider 範圍需 playtesting 校準；被勾住的麵包跟隨鉤子移動時的物理穩定性待測試 |
 
 ### 第三關：The Moving Meal
 
@@ -104,8 +106,8 @@
 ### 程式任務（Unity / C#）
 - D1 — VR 基礎設置
 建立 XR Origin、配置 Meta SDK、手部追蹤輸入、主相機。確認在裝置上能跑起來。
-- D2 — Snap Grabbing 系統
-使用 Meta SDK Building Blocks 加入 **Hand Grab Interaction** Block（自動建立 HandGrabInteractor）。麵包 Prefab 掛 `Grabbable` + `HandGrabInteractable`，再加薄層 `BreadSnapToMouth.cs` 監聽 SDK 事件，抓取時吸附到 mouthAnchor（isKinematic = true），放開後恢復物理重力（isKinematic = false）。無需自行輪詢 OVRInput。
+- D2 — Snap Grabbing 系統 + 鉤子系統（第二關）
+使用 Meta SDK Building Blocks 加入 **Hand Grab Interaction** Block（自動建立 HandGrabInteractor）。麵包 Prefab 掛 `Grabbable` + `HandGrabInteractable`，再加薄層 `BreadSnapToMouth.cs` 監聽 SDK 事件，抓取時吸附到 mouthAnchor（isKinematic = true），放開後恢復物理重力（isKinematic = false）。無需自行輪詢 OVRInput。同時製作 `HookRod.cs` + `HookProjectile.cs`，實作投擲、命中、LineRenderer 繩子與 MoveTowards 拉回邏輯，並在 Level2 場景擺放 1 根鉤竿及 1～2 塊遠距麵包。
 - D3 — 巢判定 + foodCount 計數器
 巢設一個大隱形 Sphere Collider，麵包進入自動解除 Parent。int foodCount 累計，達標時顯示 Level Clear UI；掉水判定觸發 Fail UI + 重置。
 - D4 — 移動平台 + Cone 光束系統
@@ -242,61 +244,151 @@ public class BreadSnapToMouth : MonoBehaviour
 
 **解決方案：** 擴大巢的 Trigger 球體，麵包進入即自動入巢，不需精準放置。
 
+> ✅ **已實作：** `Assets/_Script/Nest.cs`
+
+#### 設計重點
+
+| 項目 | 說明 |
+|------|------|
+| `[RequireComponent(SphereCollider)]` | 自動確保 isTrigger = true |
+| `HashSet<Bread> _counted` | 防止同一塊麵包滾動時觸發多次計數 |
+| `_levelCleared` 旗標 | 過關後忽略後續觸發，避免多次呼叫 `onLevelClear` |
+| `SnapIntoPile` Coroutine | SmoothStep 0.15 s 位移動畫，結束後恢復物理堆疊 |
+| `ResetNest()` | 清除所有子物件 + 重置計數，供 GameManager 失敗重置使用 |
+| `FoodCount` 屬性 | 供 UI 或 GameManager 讀取當前進度 |
+
+#### Inspector 設定
+
+1. 巢 GameObject 掛 `Nest.cs`
+2. `SphereCollider` → `Radius = 0.25`（建議值），`Is Trigger = true`（Awake 自動設定）
+3. `requiredCount`：第一關填 `1`，第二關填 `3`
+4. `onLevelClear` → 拖入 `GameManager.OnLevelClear()`
+
 ```csharp
-// Nest.cs
-public class Nest : MonoBehaviour
+// Nest.cs — 核心片段
+void OnTriggerEnter(Collider other)
 {
-    [Header("Win Condition")]
-    public int requiredCount = 1;         // 各關設定不同目標
-    public UnityEvent onLevelClear;
+    if (_levelCleared) return;
 
-    private int foodCount = 0;
+    Bread bread = other.GetComponent<Bread>();
+    if (bread == null || _counted.Contains(bread)) return;
 
-    void OnTriggerEnter(Collider other)
+    _counted.Add(bread);
+    bread.Detach();                           // 解除嘴部 Parent
+    bread.transform.SetParent(transform);
+
+    Rigidbody rb = bread.GetComponent<Rigidbody>();
+    if (rb != null) rb.isKinematic = true;
+
+    StartCoroutine(SnapIntoPile(bread.transform, rb,
+        transform.position + Random.insideUnitSphere * pileSpreadRadius));
+
+    _foodCount++;
+    Debug.Log($"[Nest] foodCount = {_foodCount} / {requiredCount}");
+
+    if (_foodCount >= requiredCount)
     {
-        Bread bread = other.GetComponent<Bread>();
-        if (bread == null) return;
-
-        bread.Detach();                   // 解除手部 Parent
-        bread.transform.SetParent(transform);
-
-        // 播放入巢小位移動畫
-        StartCoroutine(SnapIntoPile(bread.transform));
-
-        foodCount++;
-        if (foodCount >= requiredCount)
-            onLevelClear.Invoke();
+        _levelCleared = true;
+        onLevelClear.Invoke();
     }
+}
 
-    IEnumerator SnapIntoPile(Transform t)
-    {
-        Vector3 target = transform.position + Random.insideUnitSphere * 0.05f;
-        float elapsed = 0f;
-        Vector3 start = t.position;
-        while (elapsed < 0.15f)
-        {
-            t.position = Vector3.Lerp(start, target, elapsed / 0.15f);
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-        t.position = target;
-        // 之後讓物理堆疊（可選）
-        t.GetComponent<Rigidbody>().isKinematic = false;
-    }
-
-    public void ResetNest()
-    {
-        foodCount = 0;
-        // 清除巢內所有麵包
-        foreach (Transform child in transform)
-            Destroy(child.gameObject);
-    }
+public void ResetNest()
+{
+    StopAllCoroutines();
+    _foodCount = 0; _levelCleared = false; _counted.Clear();
+    for (int i = transform.childCount - 1; i >= 0; i--)
+        Destroy(transform.GetChild(i).gameObject);
 }
 ```
 
 ---
 
-### 3. 移動平台（第三關）
+### 3. 鉤子系統（第二關）
+
+**問題：** 部分麵包距離太遠，直接用嘴咬不到，需要引入新互動來增加趣味。
+
+**解決方案：** 場景放一把可抓取的**實體長鉤子**（Long Hook），玩家用手握住握柄後直接伸手向前，讓鉤頭端的 Trigger Collider 碰到麵包即勾住；縮手往回拉，麵包跟著鉤子移動，拉到嘴邊後換嘴咬取。不需投擲機制。
+
+#### 核心元件
+
+| 元件 | 說明 |
+|------|------|
+| `LongHook.cs` | 掛在長鉤子 Prefab 的**握柄端**，監聽鉤頭碰撞並控制勾住/鬆開 |
+| `HookTip`（子物件） | 鉤頭端子物件，掛 `Collider`（isTrigger = true）+ `HookTip.cs` 回報碰撞 |
+| `Grabbable` + `HandGrabInteractable` | 讓玩家能抓起長鉤子（複用 Snap Grabbing 系統） |
+
+```csharp
+// LongHook.cs
+// 掛在長鉤子 Prefab 的根物件（握柄端）
+using UnityEngine;
+using Oculus.Interaction;
+
+public class LongHook : MonoBehaviour
+{
+    [Header("References")]
+    public HookTip hookTip;          // 鉤頭子物件
+
+    private Bread _hookedBread;
+    private Rigidbody _hookedRb;
+
+    void OnEnable()  => hookTip.onTouched += OnHookTouched;
+    void OnDisable() => hookTip.onTouched -= OnHookTouched;
+
+    void Update()
+    {
+        // 麵包被勾住時，跟隨鉤頭位置移動
+        if (_hookedBread != null)
+            _hookedBread.transform.position = hookTip.transform.position;
+    }
+
+    private void OnHookTouched(Bread bread)
+    {
+        if (_hookedBread != null) return;   // 已勾住一塊則忽略
+
+        _hookedBread = bread;
+        _hookedRb = bread.GetComponent<Rigidbody>();
+        if (_hookedRb != null) _hookedRb.isKinematic = true;  // 凍結物理，改由鉤頭帶動
+    }
+
+    // 玩家鬆開鉤子（HandGrabInteractable Released 事件呼叫）
+    public void ReleaseHook()
+    {
+        if (_hookedRb != null) _hookedRb.isKinematic = false;  // 恢復物理
+        _hookedBread = null;
+        _hookedRb = null;
+    }
+}
+```
+
+```csharp
+// HookTip.cs
+// 掛在長鉤子的鉤頭子物件上
+using UnityEngine;
+using System;
+
+public class HookTip : MonoBehaviour
+{
+    public Action<Bread> onTouched;
+
+    void OnTriggerEnter(Collider other)
+    {
+        Bread bread = other.GetComponent<Bread>();
+        if (bread != null)
+            onTouched?.Invoke(bread);
+    }
+}
+```
+
+> **互動設計重點**
+> - 長鉤子是一個完整的實體模型（握柄 + 彎鉤），鉤頭端掛細小 Trigger Collider
+> - 玩家握住握柄端後，物理上整根鉤子跟著手移動，鉤頭自然延伸到遠處
+> - 當玩家把手收回，麵包跟著鉤頭被帶過來，不需任何額外按鈕
+> - 鬆開手（HandGrabInteractable 的 Released 事件）時呼叫 `ReleaseHook()`，麵包恢復物理落在原地
+
+---
+
+### 4. 移動平台（第三關）
 
 ```csharp
 // MovingPlatform.cs
@@ -319,7 +411,7 @@ public class MovingPlatform : MonoBehaviour
 
 ---
 
-### 4. 巡邏員 Cone 光束系統（第四關）
+### 5. 巡邏員 Cone 光束系統（第四關）
 
 **重點設計：** 以 `Physics.CheckSphere` 搭配視角判定，脖子（視覺用）不參與碰撞。
 
@@ -397,7 +489,7 @@ public class Guard : MonoBehaviour
 
 ---
 
-### 5. 關卡管理系統
+### 6. 關卡管理系統
 
 ```csharp
 // GameManager.cs
@@ -469,7 +561,7 @@ public class GameManager : MonoBehaviour
 
 ---
 
-### 6. 水面落水偵測
+### 7. 水面落水偵測
 
 ```csharp
 // WaterTrigger.cs
@@ -501,6 +593,8 @@ Assets/
 │   │   ├── GooseHead.cs
 │   │   ├── Bread.cs
 │   │   ├── Nest.cs
+│   │   ├── LongHook.cs         ← 第二關實體長鉤子，控制勾住 & 帶動麵包
+│   │   ├── HookTip.cs          ← 鉤頭碰撞偵測，回報命中麵包
 │   │   ├── MovingPlatform.cs
 │   │   ├── Guard.cs
 │   │   ├── SafeZone.cs
@@ -516,6 +610,8 @@ Assets/
 │   ├── Bread_Croissant.prefab
 │   ├── GooseHead.prefab
 │   ├── Nest.prefab
+│   ├── HookRod.prefab          ← 鉤竿（可抓取）
+│   ├── HookProjectile.prefab   ← 飛行鉤子
 │   └── Guard.prefab
 └── Scenes/
     ├── Level1.unity ~ Level5.unity
