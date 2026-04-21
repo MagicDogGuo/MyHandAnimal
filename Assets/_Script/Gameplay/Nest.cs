@@ -8,12 +8,13 @@ using UnityEngine.Events;
 /// 掛在巢 GameObject 上，需搭配一個 isTrigger = true 的 SphereCollider（建議半徑 0.25 m）。
 ///
 /// 流程：
-///   1. 麵包進入 Trigger → 呼叫 bread.Detach() 解除嘴部吸附
-///   2. 麵包 SetParent(transform) 成為巢的子物件
-///   3. SnapIntoPile Coroutine 播放小位移落巢動畫
-///   4. foodCount++；達到 requiredCount 時觸發 onLevelClear
+///   1. 麵包進入 Trigger → 加入 _pendingBreads（可能還在手裡）
+///   2. OnTriggerStay 每幀輪詢：bread.IsHeld 變為 false（放手）→ 觸發入巢
+///   3. 麵包離開 Trigger 且未入巢 → 從 _pendingBreads 移除（帶走）
+///   4. 入巢：Detach → SetParent → SnapIntoPile 動畫 → foodCount++
+///   5. 達到 requiredCount → 觸發 onLevelClear
 ///
-/// 外部呼叫 ResetNest() 重置計數器並銷毀巢內所有子麵包物件。
+/// 外部呼叫 ResetNest() 重置計數器（巢內麵包由 GameManager.ResetToSpawn 處理）。
 /// </summary>
 [RequireComponent(typeof(SphereCollider))]
 public class Nest : MonoBehaviour
@@ -34,10 +35,13 @@ public class Nest : MonoBehaviour
     public float snapDuration = 0.15f;
 
     // ── 狀態 ──────────────────────────────────────────────────────────────
-    private int  _foodCount     = 0;
-    private bool _levelCleared  = false;
+    private int  _foodCount    = 0;
+    private bool _levelCleared = false;
 
-    /// <summary>防止同一塊麵包在滾動中觸發多次 OnTriggerEnter 被重複計數。</summary>
+    /// <summary>在巢區域內、但尚未放手的麵包。</summary>
+    private readonly HashSet<Bread> _pendingBreads = new HashSet<Bread>();
+
+    /// <summary>已確認入巢計分的麵包，防止重複計數。</summary>
     private readonly HashSet<Bread> _counted = new HashSet<Bread>();
 
     // ── 公開屬性（供 UI / GameManager 讀取當前計數）──────────────────────
@@ -50,22 +54,47 @@ public class Nest : MonoBehaviour
         GetComponent<SphereCollider>().isTrigger = true;
     }
 
-    // ── 巢判定主邏輯 ──────────────────────────────────────────────────────
+    // ── Step 1：麵包進入巢範圍 → 加入等待集合 ────────────────────────────
     void OnTriggerEnter(Collider other)
     {
         if (_levelCleared) return;
 
         Bread bread = other.GetComponent<Bread>();
-        if (bread == null)          return;
-        if (_counted.Contains(bread)) return;   // 同一麵包只計一次
+        if (bread == null || _counted.Contains(bread)) return;
 
+        _pendingBreads.Add(bread);
+    }
+
+    // ── Step 2：每幀檢查等待中的麵包是否已放手 ───────────────────────────
+    void OnTriggerStay(Collider other)
+    {
+        if (_levelCleared) return;
+
+        Bread bread = other.GetComponent<Bread>();
+        if (bread == null || !_pendingBreads.Contains(bread)) return;
+
+        // 放手瞬間（IsHeld 從 true → false）才入巢
+        if (!bread.IsHeld)
+            AcceptBread(bread);
+    }
+
+    // ── Step 3：麵包離開範圍（被手帶走）→ 移出等待集合 ──────────────────
+    void OnTriggerExit(Collider other)
+    {
+        Bread bread = other.GetComponent<Bread>();
+        if (bread != null)
+            _pendingBreads.Remove(bread);
+    }
+
+    // ── 確認入巢：Detach → Parent → 動畫 → 計分 ─────────────────────────
+    private void AcceptBread(Bread bread)
+    {
+        _pendingBreads.Remove(bread);
         _counted.Add(bread);
 
-        // 先解除嘴部 Parent，再讓巢接管
         bread.Detach();
         bread.transform.SetParent(transform);
 
-        // 停止物理碰撞，播放入巢動畫
         Rigidbody rb = bread.GetComponent<Rigidbody>();
         if (rb != null) rb.isKinematic = true;
 
@@ -102,7 +131,7 @@ public class Nest : MonoBehaviour
         {
             breadTf.position = target;
             // 動畫結束後恢復物理，讓麵包在巢中自然堆疊
-            if (rb != null) rb.isKinematic = false;
+            if (rb != null) rb.isKinematic = false;        
         }
     }
 
@@ -117,6 +146,7 @@ public class Nest : MonoBehaviour
         StopAllCoroutines();
         _foodCount    = 0;
         _levelCleared = false;
+        _pendingBreads.Clear();
         _counted.Clear();
     }
 

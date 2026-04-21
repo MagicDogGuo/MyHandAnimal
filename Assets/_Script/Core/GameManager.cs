@@ -48,7 +48,8 @@ public class GameManager : MonoBehaviour
     public float clearNextDelay = 2f;
 
     // ── 狀態 ──────────────────────────────────────────────────────────────
-    private bool _isResetting = false;   // 重置過渡期間封鎖重複 OnFail
+    private bool _isResetting   = false;   // 重置過渡期間封鎖重複 OnFail
+    private bool _levelCleared  = false;   // 過關後封鎖 OnFail（巢內麵包物理恢復可能觸發落水）
 
     // ─────────────────────────────────────────────────────────────────────
     void Awake()
@@ -80,6 +81,7 @@ public class GameManager : MonoBehaviour
     {
         if (_isResetting) return;
 
+        _levelCleared = true;
         Debug.Log("[GameManager] Level Clear!");
         SetUI(clearUI, true);
 
@@ -90,7 +92,7 @@ public class GameManager : MonoBehaviour
     // ── 失敗（由 WaterTrigger 呼叫）──────────────────────────────────────
     public void OnFail()
     {
-        if (_isResetting) return;
+        if (_isResetting || _levelCleared) return;   // 已過關時忽略落水事件
         _isResetting = true;
 
         Debug.Log("[GameManager] Fail — resetting level.");
@@ -115,7 +117,8 @@ public class GameManager : MonoBehaviour
                 bread.ResetToSpawn();
         }
 
-        _isResetting = false;
+        _isResetting  = false;
+        _levelCleared = false;
     }
 
     // ── 進入下一關（D5 串接後替換此處邏輯）──────────────────────────────

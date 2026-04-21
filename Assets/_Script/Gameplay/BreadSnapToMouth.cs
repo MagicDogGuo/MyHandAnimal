@@ -46,6 +46,9 @@ public class BreadSnapToMouth : MonoBehaviour
     private Rigidbody _rb;
     private bool _isSnapped;
 
+    /// <summary>麵包目前是否被吸附在嘴上（供 Nest 判斷「放手才入巢」使用）。</summary>
+    public bool IsHeld => _isSnapped;
+
     // ── Snap 動畫 ─────────────────────────────────────────────────────────
     private float _snapTimer;
     private Vector3 _snapStartLocalPos;

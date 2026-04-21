@@ -25,6 +25,9 @@ public class Bread : MonoBehaviour
     private BreadSnapToMouth _snapToMouth;
     private Rigidbody        _rb;
 
+    /// <summary>麵包目前是否被手持住（轉傳 BreadSnapToMouth.IsHeld）。</summary>
+    public bool IsHeld => _snapToMouth != null && _snapToMouth.IsHeld;
+
     // ─────────────────────────────────────────────────────────────────────
     void Awake()
     {
