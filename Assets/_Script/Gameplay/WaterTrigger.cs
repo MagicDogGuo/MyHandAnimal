@@ -20,9 +20,25 @@ public class WaterTrigger : MonoBehaviour
         GetComponent<Collider>().isTrigger = true;
     }
 
+    // OnTriggerEnter：未持拿直接落水
     void OnTriggerEnter(Collider other)
     {
-        if (other.GetComponent<Bread>() == null) return;
+        TryFail(other);
+    }
+
+    // OnTriggerStay：手持進入水中後放手
+    void OnTriggerStay(Collider other)
+    {
+        TryFail(other);
+    }
+
+    private void TryFail(Collider other)
+    {
+        Bread bread = other.GetComponent<Bread>();
+        if (bread == null) return;
+
+        // 手持中的麵包可能碰到水面，不算失敗；放手後才判定
+        if (bread.IsHeld) return;
 
         if (GameManager.Instance != null)
             GameManager.Instance.OnFail();
