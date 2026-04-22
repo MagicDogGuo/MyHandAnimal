@@ -83,6 +83,7 @@ public class GameManager : MonoBehaviour
 
         _levelCleared = true;
         Debug.Log("[GameManager] Level Clear!");
+        AudioManager.Instance?.PlayClear();
         SetUI(clearUI, true);
 
         if (clearNextDelay > 0f)
@@ -96,6 +97,7 @@ public class GameManager : MonoBehaviour
         _isResetting = true;
 
         Debug.Log("[GameManager] Fail — resetting level.");
+        AudioManager.Instance?.PlayFail();
         SetUI(failUI, true);
 
         StartCoroutine(DelayedAction(failResetDelay, ResetLevel));
