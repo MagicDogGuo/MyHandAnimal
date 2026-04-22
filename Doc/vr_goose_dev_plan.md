@@ -12,13 +12,15 @@
 
 ## 關卡設計總覽
 
-| 關卡 | 名稱 | 訓練核心 | 麵包 |
-|------|------|---------|------|
-| 第一關 | Straight to the Nest | 伸長 → 咬 → 縮回 | 🍞 白吐司 |
-| 第二關 | Multitasking | 左右橫向移動 + 鉤子拉食物 | 🥖 長棍麵包 |
-| 第三關 | The Moving Meal | 預判移動目標 | 🍩 甜甜圈 |
-| 第四關 | 視線躲避 | 躲避巡邏光束 | 🥐 可頌 |
-| 第五關 | 時機抓取 | 綜合第三、四關 | 🍞🥖🍩 混合 |
+
+| 關卡  | 名稱                   | 訓練核心           | 麵包        |
+| --- | -------------------- | -------------- | --------- |
+| 第一關 | Straight to the Nest | 伸長 → 咬 → 縮回    | 🍞 白吐司    |
+| 第二關 | Multitasking         | 左右橫向移動 + 鉤子拉食物 | 🥖 長棍麵包   |
+| 第三關 | The Moving Meal      | 預判移動目標         | 🍩 甜甜圈    |
+| 第四關 | 視線躲避                 | 躲避巡邏光束         | 🥐 可頌     |
+| 第五關 | 時機抓取                 | 綜合第三、四關        | 🍞🥖🍩 混合 |
+
 
 ---
 
@@ -26,54 +28,64 @@
 
 ### 第一關：Straight to the Nest
 
-| 項目 | 內容 |
-|------|------|
-| **場景配置** | 麵包在正前方碼頭邊緣，巢在視線正下方 |
-| **過關條件** | 成功放入巢中 1 次 |
-| **失敗條件** | 麵包掉入水中 → Fail UI → 重來 |
-| **核心機制** | 基礎 Snap Grabbing；無障礙、無時限 |
-| **⚠️ 待補強** | 需新增新手引導箭頭 UI |
+
+| 項目         | 內容                       |
+| ---------- | ------------------------ |
+| **場景配置**   | 麵包在正前方碼頭邊緣，巢在視線正下方       |
+| **過關條件**   | 成功放入巢中 1 次               |
+| **失敗條件**   | 麵包掉入水中 → Fail UI → 重來    |
+| **核心機制**   | 基礎 Snap Grabbing；無障礙、無時限 |
+| **⚠️ 待補強** | 需新增新手引導箭頭 UI             |
+
 
 ### 第二關：Multitasking
 
-| 項目 | 內容 |
-|------|------|
-| **場景配置** | 岸邊散落 3 塊麵包（左、中、右），其中 1～2 塊距離較遠，需用鉤子拉近才能咬到 |
-| **過關條件** | `foodCount == 3` 顯示 Level Clear；順序不限 |
-| **失敗條件** | 任一麵包落水 → 三塊全部重置 |
-| **核心機制** | 巢內整數計數器 `int foodCount`；新增**實體長鉤子道具**，玩家用手握住鉤子尾端，伸出去直接勾住遠處麵包，再往自己方向拉回 |
+
+| 項目         | 內容                                                                                                                            |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **場景配置**   | 岸邊散落 3 塊麵包（左、中、右），其中 1～2 塊距離較遠，需用鉤子拉近才能咬到                                                                                     |
+| **過關條件**   | `foodCount == 3` 顯示 Level Clear；順序不限                                                                                          |
+| **失敗條件**   | 任一麵包落水 → 三塊全部重置                                                                                                               |
+| **核心機制**   | 巢內整數計數器 `int foodCount`；新增**實體長鉤子道具**，玩家用手握住鉤子尾端，伸出去直接勾住遠處麵包，再往自己方向拉回                                                         |
 | **鉤子互動流程** | ① 場景中有一把長鉤子（Long Hook）靜置在碼頭邊 → ② 玩家用手抓住鉤子握柄 → ③ 伸手向前，讓鉤頭碰觸遠處麵包（Trigger 接觸判定，無需投擲） → ④ 接觸後麵包被鉤住，隨鉤子移動 → ⑤ 把麵包拉到嘴邊距離後，鬆開鉤子改用嘴咬取 |
-| **⚠️ 待補強** | 鉤頭 Collider 範圍需 playtesting 校準；被勾住的麵包跟隨鉤子移動時的物理穩定性待測試 |
+| **⚠️ 待補強** | 鉤頭 Collider 範圍需 playtesting 校準；被勾住的麵包跟隨鉤子移動時的物理穩定性待測試                                                                         |
+
 
 ### 第三關：The Moving Meal
 
-| 項目 | 內容 |
-|------|------|
-| **場景配置** | 麵包放在左右緩慢往返的平台上 |
-| **過關條件** | 成功放入巢中 1 次；無時限 |
-| **失敗條件** | 麵包落水 → 重來 |
-| **核心機制** | Sine 曲線往返平台；咬空無懲罰 |
+
+| 項目         | 內容                                       |
+| ---------- | ---------------------------------------- |
+| **場景配置**   | 麵包放在左右緩慢往返的平台上                           |
+| **過關條件**   | 成功放入巢中 1 次；無時限                           |
+| **失敗條件**   | 麵包落水 → 重來                                |
+| **核心機制**   | Sine 曲線往返平台；咬空無懲罰                        |
 | **⚠️ 待補強** | 平台移動速度待 playtesting 校準（建議初始 1.5 units/s） |
+
 
 ### 第四關：視線躲避
 
-| 項目 | 內容 |
-|------|------|
-| **場景配置** | 巡邏員持手電筒 Cone 光束來回掃視 |
-| **過關條件** | 成功放入 3 次且未被發現；無時限 |
-| **失敗條件** | 手進入光束 → Fail UI；麵包落水亦同 |
-| **核心機制** | Cone Trigger 判定；脖子穿模不計入 |
+
+| 項目         | 內容                                 |
+| ---------- | ---------------------------------- |
+| **場景配置**   | 巡邏員持手電筒 Cone 光束來回掃視                |
+| **過關條件**   | 成功放入 3 次且未被發現；無時限                  |
+| **失敗條件**   | 手進入光束 → Fail UI；麵包落水亦同             |
+| **核心機制**   | Cone Trigger 判定；脖子穿模不計入            |
 | **⚠️ 待補強** | 巡邏路徑與轉頭速度待校準（建議 3 秒一來回）；警戒過渡動畫 TBD |
+
 
 ### 第五關：時機抓取
 
-| 項目 | 內容 |
-|------|------|
-| **場景配置** | 遮蔽物 + 移動平台 + 巡邏員 |
-| **過關條件** | 放入 3 次且未被發現；無時限 |
-| **失敗條件** | 進入光束 / 麵包落水 → 重來 |
-| **核心機制** | 安全區系統 + 第三、四關機制組合 |
+
+| 項目         | 內容                 |
+| ---------- | ------------------ |
+| **場景配置**   | 遮蔽物 + 移動平台 + 巡邏員   |
+| **過關條件**   | 放入 3 次且未被發現；無時限    |
+| **失敗條件**   | 進入光束 / 麵包落水 → 重來   |
+| **核心機制**   | 安全區系統 + 第三、四關機制組合  |
 | **⚠️ 待補強** | 遮蔽物位置需實機 VR 站立測試確認 |
+
 
 ### 🏁 結局
 
@@ -83,17 +95,20 @@
 
 ## 7 天開發時程
 
-| 天 | 程式 | 美術 |
-|----|------|------|
-| D1 | VR 基礎設置（XR Origin、手部追蹤、相機） | 鵝頭模型開始 + 場景 blockout |
-| D2 | Snap Grabbing 系統 | 鵝頭完成 + 麵包 ×4 種類開始 |
-| D3 | 巢判定 + foodCount 計數器 | 麵包完成 + 碼頭場景完成 |
-| D4 | 移動平台（Sine）+ Cone 光束系統 | 推車 mesh + 巡邏員模型 + NPC 動畫 |
-| D5 | 關卡管理 + Fail/Win UI + 新手引導 | 手電筒光效 + 遮蔽物 |
-| D6 | 全 5 關串接 + Playtest 校準 | 結局白色空間 + 麵包粒子特效 |
-| D7 | Bug 修正 + 版本凍結 | 最終美術 polish |
+
+| 天   | 程式                         | 美術                       |
+| --- | -------------------------- | ------------------------ |
+| D1  | VR 基礎設置（XR Origin、手部追蹤、相機） | 鵝頭模型開始 + 場景 blockout     |
+| D2  | Snap Grabbing 系統           | 鵝頭完成 + 麵包 ×4 種類開始        |
+| D3  | 巢判定 + foodCount 計數器        | 麵包完成 + 碼頭場景完成            |
+| D4  | 移動平台（Sine）+ Cone 光束系統      | 推車 mesh + 巡邏員模型 + NPC 動畫 |
+| D5  | 關卡管理 + Fail/Win UI + 新手引導  | 手電筒光效 + 遮蔽物              |
+| D6  | 全 5 關串接 + Playtest 校準      | 結局白色空間 + 麵包粒子特效          |
+| D7  | Bug 修正 + 版本凍結              | 最終美術 polish              |
+
 
 **里程碑：**
+
 - D3 結束：關卡 1–2 可遊玩
 - D5 結束：關卡 3–4 可遊玩
 - D6 結束：全關串接完成
@@ -104,10 +119,11 @@
 ## 概述
 
 ### 程式任務（Unity / C#）
+
 - D1 — VR 基礎設置
 建立 XR Origin、配置 Meta SDK、手部追蹤輸入、主相機。確認在裝置上能跑起來。
-- D2 — Snap Grabbing 系統 + 鉤子系統（第二關）
-使用 Meta SDK Building Blocks 加入 **Hand Grab Interaction** Block（自動建立 HandGrabInteractor）。麵包 Prefab 掛 `Grabbable` + `HandGrabInteractable`，再加薄層 `BreadSnapToMouth.cs` 監聽 SDK 事件，抓取時吸附到 mouthAnchor（isKinematic = true），放開後恢復物理重力（isKinematic = false）。無需自行輪詢 OVRInput。同時製作 `HookRod.cs` + `HookProjectile.cs`，實作投擲、命中、LineRenderer 繩子與 MoveTowards 拉回邏輯，並在 Level2 場景擺放 1 根鉤竿及 1～2 塊遠距麵包。
+- D2 — Snap Grabbing 系統 + 鉤子道具（第二關）
+使用 Meta SDK Building Blocks 加入 **Hand Grab Interaction** Block（自動建立 HandGrabInteractor）。麵包 Prefab 掛 `Grabbable` + `HandGrabInteractable`，再加薄層 `BreadSnapToMouth.cs` 監聽 SDK 事件，抓取時吸附到 mouthAnchor（isKinematic = true），放開後恢復物理重力（isKinematic = false）。無需自行輪詢 OVRInput。同時製作長鉤子 Prefab（純物理 Collider 方案，無需腳本），並在 Level2 場景擺放 1 根鉤子及 1～2 塊遠距麵包。
 - D3 — 巢判定 + foodCount 計數器
 巢設一個大隱形 Sphere Collider，麵包進入自動解除 Parent。int foodCount 累計，達標時顯示 Level Clear UI；掉水判定觸發 Fail UI + 重置。
 - D4 — 移動平台 + Cone 光束系統
@@ -116,6 +132,7 @@
 GameManager 統一控制關卡切換、重置邏輯、結局場景（白色空間 + 麵包雨粒子）。第一關補上新手引導箭頭 UI。
 
 ### 美術任務（Blender → Unity）
+
 - D1–2 — 鵝頭模型
 Low Poly 風格，保留嘴部骨架（兩根骨頭），貼圖做簡單白色 + 橘嘴。手部追蹤對應嘴部開合動畫。
 - D2–3 — 四種麵包
@@ -126,8 +143,6 @@ Low Poly 風格，保留嘴部骨架（兩根骨頭），貼圖做簡單白色 +
 推車 mesh + 滑動動畫；NPC 模型配巡邏走路週期動畫；手電筒 Spot Light 做 Cone 光效，加輕微掃射音效。
 - D6 — 結局場景
 純白空間 + 所有麵包從天而降的粒子爆炸特效，搭配勝利音效/BGM。
-
-
 
 ---
 
@@ -144,18 +159,16 @@ Low Poly 風格，保留嘴部骨架（兩根骨頭），貼圖做簡單白色 +
 #### Scene 設置（Inspector 操作，無需手寫 Grab 邏輯）
 
 1. **XR Origin（Camera Rig）**
-   - 在 Meta Building Blocks 面板加入 **Hand Grab Interaction** Block
-     （會自動建立 `HandGrabInteractor` 於左右手節點）
-
+  - 在 Meta Building Blocks 面板加入 **Hand Grab Interaction** Block
+   （會自動建立 `HandGrabInteractor` 於左右手節點）
 2. **麵包 Prefab** — 每個麵包加上以下 Component：
-   - `Rigidbody`（非 Kinematic）
-   - `Collider`（建議 Box / Sphere）
-   - `Grabbable`（Meta Interaction SDK）
-   - `HandGrabInteractable`（Meta Interaction SDK）
-   - `BreadSnapToMouth`（自訂，見下方程式碼）
-
+  - `Rigidbody`（非 Kinematic）
+  - `Collider`（建議 Box / Sphere）
+  - `Grabbable`（Meta Interaction SDK）
+  - `HandGrabInteractable`（Meta Interaction SDK）
+  - `BreadSnapToMouth`（自訂，見下方程式碼）
 3. **鵝頭 GameObject**（mouthAnchor 空物件）
-   - 掛上 `MouthAnchor` Tag 或直接在 `BreadSnapToMouth` 序列化指定
+  - 掛上 `MouthAnchor` Tag 或直接在 `BreadSnapToMouth` 序列化指定
 
 > ⚠️ **不需要** 再寫 `OVRInput.Get(...)` 或 `Physics.OverlapSphere` 來偵測抓取；Meta SDK 的 `HandGrabInteractable` 已處理所有輸入與物理。
 
@@ -229,6 +242,7 @@ public class BreadSnapToMouth : MonoBehaviour
 
 > **為什麼不寫 Grab 主邏輯？**
 > Meta SDK 的 `HandGrabInteractable` 已處理：
+>
 > - 手部追蹤 Pinch / Palm Grab 姿勢辨識
 > - Controller Grip 按鍵偵測
 > - 抓取時物理交互（velocity tracking）
@@ -248,14 +262,16 @@ public class BreadSnapToMouth : MonoBehaviour
 
 #### 設計重點
 
-| 項目 | 說明 |
-|------|------|
-| `[RequireComponent(SphereCollider)]` | 自動確保 isTrigger = true |
-| `HashSet<Bread> _counted` | 防止同一塊麵包滾動時觸發多次計數 |
-| `_levelCleared` 旗標 | 過關後忽略後續觸發，避免多次呼叫 `onLevelClear` |
-| `SnapIntoPile` Coroutine | SmoothStep 0.15 s 位移動畫，結束後恢復物理堆疊 |
-| `ResetNest()` | 清除所有子物件 + 重置計數，供 GameManager 失敗重置使用 |
-| `FoodCount` 屬性 | 供 UI 或 GameManager 讀取當前進度 |
+
+| 項目                                   | 說明                                  |
+| ------------------------------------ | ----------------------------------- |
+| `[RequireComponent(SphereCollider)]` | 自動確保 isTrigger = true               |
+| `HashSet<Bread> _counted`            | 防止同一塊麵包滾動時觸發多次計數                    |
+| `_levelCleared` 旗標                   | 過關後忽略後續觸發，避免多次呼叫 `onLevelClear`     |
+| `SnapIntoPile` Coroutine             | SmoothStep 0.15 s 位移動畫，結束後恢復物理堆疊    |
+| `ResetNest()`                        | 清除所有子物件 + 重置計數，供 GameManager 失敗重置使用 |
+| `FoodCount` 屬性                       | 供 UI 或 GameManager 讀取當前進度           |
+
 
 #### Inspector 設定
 
@@ -308,83 +324,25 @@ public void ResetNest()
 
 **問題：** 部分麵包距離太遠，直接用嘴咬不到，需要引入新互動來增加趣味。
 
-**解決方案：** 場景放一把可抓取的**實體長鉤子**（Long Hook），玩家用手握住握柄後直接伸手向前，讓鉤頭端的 Trigger Collider 碰到麵包即勾住；縮手往回拉，麵包跟著鉤子移動，拉到嘴邊後換嘴咬取。不需投擲機制。
+**解決方案：** 場景放一把可抓取的**實體長鉤子**（Long Hook），玩家用手握住握柄後直接伸手向前，讓鉤頭的實體 Collider 直接推/勾住麵包的 Rigidbody；縮手往回拉，Unity 物理自動帶動麵包跟著移動，拉到嘴邊後換嘴咬取。**不需任何自訂腳本，純物理即可。**
 
 #### 核心元件
 
-| 元件 | 說明 |
-|------|------|
-| `LongHook.cs` | 掛在長鉤子 Prefab 的**握柄端**，監聽鉤頭碰撞並控制勾住/鬆開 |
-| `HookTip`（子物件） | 鉤頭端子物件，掛 `Collider`（isTrigger = true）+ `HookTip.cs` 回報碰撞 |
-| `Grabbable` + `HandGrabInteractable` | 讓玩家能抓起長鉤子（複用 Snap Grabbing 系統） |
 
-```csharp
-// LongHook.cs
-// 掛在長鉤子 Prefab 的根物件（握柄端）
-using UnityEngine;
-using Oculus.Interaction;
+| 元件                                   | 說明                                          |
+| ------------------------------------ | ------------------------------------------- |
+| 長鉤子 3D 模型（握柄 + 彎鉤）                   | 一個完整 Mesh，鉤頭端加 Collider（非 Trigger，實體碰撞）      |
+| `Grabbable` + `HandGrabInteractable` | 讓玩家能抓起長鉤子（複用 Snap Grabbing 系統）              |
+| 麵包 `Rigidbody`                       | 保持非 Kinematic，鉤頭 Collider 接觸後由物理引擎自然推動/帶動麵包 |
 
-public class LongHook : MonoBehaviour
-{
-    [Header("References")]
-    public HookTip hookTip;          // 鉤頭子物件
-
-    private Bread _hookedBread;
-    private Rigidbody _hookedRb;
-
-    void OnEnable()  => hookTip.onTouched += OnHookTouched;
-    void OnDisable() => hookTip.onTouched -= OnHookTouched;
-
-    void Update()
-    {
-        // 麵包被勾住時，跟隨鉤頭位置移動
-        if (_hookedBread != null)
-            _hookedBread.transform.position = hookTip.transform.position;
-    }
-
-    private void OnHookTouched(Bread bread)
-    {
-        if (_hookedBread != null) return;   // 已勾住一塊則忽略
-
-        _hookedBread = bread;
-        _hookedRb = bread.GetComponent<Rigidbody>();
-        if (_hookedRb != null) _hookedRb.isKinematic = true;  // 凍結物理，改由鉤頭帶動
-    }
-
-    // 玩家鬆開鉤子（HandGrabInteractable Released 事件呼叫）
-    public void ReleaseHook()
-    {
-        if (_hookedRb != null) _hookedRb.isKinematic = false;  // 恢復物理
-        _hookedBread = null;
-        _hookedRb = null;
-    }
-}
-```
-
-```csharp
-// HookTip.cs
-// 掛在長鉤子的鉤頭子物件上
-using UnityEngine;
-using System;
-
-public class HookTip : MonoBehaviour
-{
-    public Action<Bread> onTouched;
-
-    void OnTriggerEnter(Collider other)
-    {
-        Bread bread = other.GetComponent<Bread>();
-        if (bread != null)
-            onTouched?.Invoke(bread);
-    }
-}
-```
 
 > **互動設計重點**
-> - 長鉤子是一個完整的實體模型（握柄 + 彎鉤），鉤頭端掛細小 Trigger Collider
-> - 玩家握住握柄端後，物理上整根鉤子跟著手移動，鉤頭自然延伸到遠處
-> - 當玩家把手收回，麵包跟著鉤頭被帶過來，不需任何額外按鈕
-> - 鬆開手（HandGrabInteractable 的 Released 事件）時呼叫 `ReleaseHook()`，麵包恢復物理落在原地
+>
+> - 長鉤子是一個完整的實體模型（握柄 + 彎鉤），**不掛任何自訂腳本**
+> - 玩家握住握柄端後，整根鉤子跟著手移動，鉤頭自然延伸到遠處
+> - 鉤頭的實體 Collider 碰到麵包後，物理引擎直接處理推力與帶動，無需 isKinematic 切換
+> - 縮手時麵包隨鉤頭被帶過來；鬆開鉤子後麵包自然受重力落下
+> - ⚠️ 需在 Rigidbody 上適當調整 Mass / Drag，避免麵包被鉤到後彈飛
 
 ---
 
@@ -593,8 +551,6 @@ Assets/
 │   │   ├── GooseHead.cs
 │   │   ├── Bread.cs
 │   │   ├── Nest.cs
-│   │   ├── LongHook.cs         ← 第二關實體長鉤子，控制勾住 & 帶動麵包
-│   │   ├── HookTip.cs          ← 鉤頭碰撞偵測，回報命中麵包
 │   │   ├── MovingPlatform.cs
 │   │   ├── Guard.cs
 │   │   ├── SafeZone.cs
@@ -610,8 +566,7 @@ Assets/
 │   ├── Bread_Croissant.prefab
 │   ├── GooseHead.prefab
 │   ├── Nest.prefab
-│   ├── HookRod.prefab          ← 鉤竿（可抓取）
-│   ├── HookProjectile.prefab   ← 飛行鉤子
+│   ├── LongHook.prefab         ← 第二關長鉤子（純物理 Collider，無腳本）
 │   └── Guard.prefab
 └── Scenes/
     ├── Level1.unity ~ Level5.unity
@@ -622,26 +577,77 @@ Assets/
 
 ## Layer 設定
 
-| Layer | 用途 |
-|-------|------|
-| `Bread` | 所有麵包物件 |
-| `PlayerHand` | 鵝頭（手部追蹤）—— 巡邏員偵測目標 |
-| `GooseNeck` | 脖子視覺 mesh —— **不加入偵測 Layer** |
-| `Water` | 水面 Trigger |
-| `Obstacle` | 遮蔽物（第五關安全區）|
+
+| Layer        | 用途                           |
+| ------------ | ---------------------------- |
+| `Bread`      | 所有麵包物件                       |
+| `PlayerHand` | 鵝頭（手部追蹤）—— 巡邏員偵測目標           |
+| `GooseNeck`  | 脖子視覺 mesh —— **不加入偵測 Layer** |
+| `Water`      | 水面 Trigger                   |
+| `Obstacle`   | 遮蔽物（第五關安全區）                  |
+
 
 ---
 
 ## ⚠️ 待校準數值（Playtesting）
 
-| 項目 | 建議初始值 | 備註 |
-|------|---------|------|
-| Snap 半徑 | 0.10 m | 過大會感覺不真實 |
-| 平台移動速度 | 1.5 units/s | 第三關 |
-| 巡邏員往返週期 | 3 秒 | 第四關 |
-| Cone 偵測角度 | 40° 半角 | 第四關 |
-| 巢 Trigger 半徑 | 0.25 m | 覆蓋胸口下方 |
-| 麵包縮放隨機範圍 | 0.9 ~ 1.1 | 視覺多樣性 |
+
+| 項目           | 建議初始值       | 備註       |
+| ------------ | ----------- | -------- |
+| Snap 半徑      | 0.10 m      | 過大會感覺不真實 |
+| 平台移動速度       | 1.5 units/s | 第三關      |
+| 巡邏員往返週期      | 3 秒         | 第四關      |
+| Cone 偵測角度    | 40° 半角      | 第四關      |
+| 巢 Trigger 半徑 | 0.25 m      | 覆蓋胸口下方   |
+| 麵包縮放隨機範圍     | 0.9 ~ 1.1   | 視覺多樣性    |
+
+
+---
+
+對應文件中各關卡的設計需求，LevelConfig 應包含以下可配置參數：
+
+## LevelConfig 可配置參數
+
+
+| 參數                | 型別    | 說明                       | 對應關卡                   |
+| ----------------- | ----- | ------------------------ | ---------------------- |
+| breadToWin        | int   | 過關所需麵包數量                 | 全關（第一關=1，第二關=3，第三關=1…） |
+| platformSpeed     | float | 移動平台速度（建議初始 1.5 units/s） | 第三、五關                  |
+| patrolSpeed       | float | 巡邏員移動速度                  | 第四、五關                  |
+| patrolCycleTime   | float | 光束來回週期（建議 3 秒一來回）        | 第四、五關                  |
+| hasHook           | bool  | 是否啟用鉤子道具                 | 第二關                    |
+| hasTutorialArrow  | bool  | 是否顯示新手引導箭頭               | 第一關                    |
+| hasMovingPlatform | bool  | 是否有移動平台                  | 第三、五關                  |
+| hasPatrolGuard    | bool  | 是否有巡邏員                   | 第四、五關                  |
+
+
+### 為什麼用 ScriptableObject？
+
+每個關卡建立一個獨立的 .asset 檔案（例如 Level1Config.asset、Level2Config.asset）
+GameManager 中的 [Header("Level Config")] 可以直接引用對應的 LevelConfig asset
+不需要改程式碼就能調整關卡參數，方便 playtesting 時快速校準數值
+基本程式結構範例
+
+```
+[CreateAssetMenu(fileName = "LevelConfig", menuName = "Game/LevelConfig")]
+public class LevelConfig : ScriptableObject
+{
+    [Header("Win/Fail")]
+    public int breadToWin = 1;
+    [Header("Features")]
+    public bool hasTutorialArrow = false;
+    public bool hasHook = false;
+    public bool hasMovingPlatform = false;
+    public bool hasPatrolGuard = false;
+    [Header("Tuning")]
+    public float platformSpeed = 1.5f;
+    public float patrolSpeed = 1.5f;
+    public float patrolCycleTime = 3f;
+}
+
+```
+
+總結：LevelConfig 的核心目標就是把各關的「可調數值」和「功能開關」從程式碼中抽出來，讓 GameManager 根據當前關卡載入對應的設定，使關卡設計和程式邏輯分離。
 
 ---
 
