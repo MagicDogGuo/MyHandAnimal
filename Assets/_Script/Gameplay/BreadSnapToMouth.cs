@@ -101,8 +101,8 @@ public class BreadSnapToMouth : MonoBehaviour
         _rb.angularVelocity = Vector3.zero;
 
         transform.SetParent(mouthAnchor);
-        _snapStartLocalPos = transform.localPosition;
-        _snapStartLocalRot = transform.localRotation;
+        // _snapStartLocalPos = transform.localPosition;
+        // _snapStartLocalRot = transform.localRotation;
         _snapTimer         = 0f;
     }
 
