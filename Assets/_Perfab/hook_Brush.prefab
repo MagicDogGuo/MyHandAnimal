@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 8361759479709441143}
   - component: {fileID: 5956455701709665007}
   m_Layer: 0
-  m_Name: hook
+  m_Name: hook_Brush
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -246,7 +246,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0.49245465, z: 0}
-  m_LocalScale: {x: 1, y: 18.821562, z: 0.02327525}
+  m_LocalScale: {x: 5.63, y: 18.821562, z: 0.02327525}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6400739186116432755}
