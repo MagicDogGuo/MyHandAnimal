@@ -944,6 +944,12 @@ MonoBehaviour:
     m_Bits: 4294967295
   castSkin: 0.03
   waterHeightLerp: 12
+  headBone: {fileID: 0}
+  lookAtTarget: {fileID: 0}
+  lookAtRange: 3
+  lookAtSlerpSpeed: 6
+  lookMaxYaw: 5
+  lookMaxPitch: 5
 --- !u!1 &3792974477680079789
 GameObject:
   m_ObjectHideFlags: 0
@@ -1118,7 +1124,7 @@ Transform:
   m_GameObject: {fileID: 4594748273656234858}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.019899964, y: 0.0229, z: 0.035700083}
+  m_LocalPosition: {x: 0.019899964, y: 0.0229, z: 0.0361}
   m_LocalScale: {x: 0.004742423, y: 0.004742423, z: 0.004742423}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1855,7 +1861,7 @@ Transform:
   m_GameObject: {fileID: 8589290124633857325}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.019899964, y: 0.0229, z: 0.035700083}
+  m_LocalPosition: {x: -0.019899964, y: 0.0229, z: 0.0377}
   m_LocalScale: {x: 0.004742423, y: 0.004742423, z: 0.004742423}
   m_ConstrainProportionsScale: 0
   m_Children: []
