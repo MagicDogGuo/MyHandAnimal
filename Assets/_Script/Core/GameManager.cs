@@ -19,6 +19,9 @@ using UnityEngine;
 /// 接線：
 ///   - Nest.onLevelClear → GameManager.OnLevelClear()
 ///   - WaterTrigger 呼叫 GameManager.Instance.OnFail()
+///   - 關卡流程：場景中建議放置 <see cref="LevelManager"/>（含 LevelConfig 陣列）；
+///     過關後 <see cref="OnLevelClear"/> 會透過 <see cref="LevelManager.GoToNextLevelAfterWin"/>
+///     載入「Level{下一關}」或結局場景（Build Settings 須已加入相關 .unity）
 /// </summary>
 public class GameManager : MonoBehaviour
 {
@@ -123,12 +126,15 @@ public class GameManager : MonoBehaviour
         _levelCleared = false;
     }
 
-    // ── 進入下一關（D5 串接後替換此處邏輯）──────────────────────────────
+    // ── 進入下一關（由 <see cref="LevelManager"/> 載入「Level{N+1}」或結局場景）────
     private void LoadNextLevel()
     {
         SetUI(clearUI, false);
-        // TODO D5：接上 SceneManager.LoadScene("Level" + nextLevelIndex)
-        Debug.Log("[GameManager] LoadNextLevel — 待 D5 串接 SceneManager");
+        LevelManager.EnsureExists();
+        if (LevelManager.Instance != null)
+            LevelManager.Instance.GoToNextLevelAfterWin();
+        else
+            Debug.LogError("[GameManager] LoadNextLevel：無法建立 LevelManager。");
     }
 
     // ── 工具：安全地切換 UI 顯示，避免 NullRef ──────────────────────────
