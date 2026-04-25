@@ -3,7 +3,7 @@ using Oculus.Interaction.HandGrab;
 using UnityEngine;
 
 /// <summary>
-/// 小鵝在水面活動範圍內的巡航 AI：隨機路點、轉向、維持水面高度，並以 Animator 參數 <c>Swim</c> 切到游水動畫。
+/// 小鵝在水面活動範圍內的巡航 AI：隨機路點、轉向、可選貼地或維持水面高度，並以 Animator 參數 <c>Swim</c> 切到游水動畫。
 /// 游水時改為 Kinematic 並以 <see cref="Rigidbody.MovePosition"/>＋障礙物 Cast 移動，避免與場景其他 Collider 碰撞推擠造成水上亂飄。
 /// 被手抓住時（依 <see cref="HandGrabInteractable"/>）暫停 AI 並關閉 <c>Swim</c>；<see cref="headBone"/>＋<see cref="lookAtTarget"/> 驅動頭部朝向（限 Yaw/Pitch，超出距離回中立）。
 /// </summary>
@@ -57,8 +57,26 @@ public class LittleGooseAI : MonoBehaviour
     [Tooltip("貼地／貼牆面時的間隙（m），避免重疊導致持續撞擊。")]
     public float castSkin = 0.03f;
 
-    [Tooltip("每幀將高度拉向水面的程度（僅用於 Kinematic 游水）。")]
+    [Tooltip("每幀將高度拉向目標（貼地或水面）的程度（Kinematic 游水用）。")]
     public float waterHeightLerp = 12f;
+
+    [Header("貼地")]
+    [Tooltip("啟用後在水平位置向下找地面；射不到則用 GetWaterY() 當回退。關閉則行為同以前僅鎖水面 Y。")]
+    public bool snapToGround = true;
+
+    [Tooltip("地板／地形所在圖層。請不要包含小鵝自體圖層，否則射線只會打到自己。")]
+    public LayerMask groundMask = ~0;
+
+    [Min(0.05f)]
+    [Tooltip("自參考高度（目前位置或移動前）再往上幾公尺作射線起點，可略過自體 Collider。")]
+    public float groundRayStartAbove = 1.5f;
+
+    [Min(0.1f)]
+    [Tooltip("自起點向下最多能搜尋的距離；若地形落差大請加大。")]
+    public float groundRayMaxDistance = 8f;
+
+    [Tooltip("貼在碰撞點法線向上偏移（公尺），避免重疊。")]
+    public float groundOffset = 0.05f;
 
     [Header("頭部 LookAt")]
     [Tooltip("小鵝的頭骨／臉的 Transform，在此節點上套用轉向。")]
@@ -96,6 +114,8 @@ public class LittleGooseAI : MonoBehaviour
     float      _nextReselectTime;
     Quaternion _headNeutralLocal;
     bool       _capturedHeadNeutral;
+
+    RaycastHit[] _groundHits = new RaycastHit[8];
 
     void Awake()
     {
@@ -143,6 +163,41 @@ public class LittleGooseAI : MonoBehaviour
         if (swimArea != null)
             return swimArea.bounds.max.y;
         return waterSurfaceY;
+    }
+
+    /// <summary>在 <paramref name="x"/>、<paramref name="z"/> 自 <paramref name="refY"/> 參考高度向上起點向下尋地；排除本物件與子階層上的 Collider。</summary>
+    bool TryGetGroundY(float x, float z, float refY, out float targetY)
+    {
+        targetY = refY;
+        if (!snapToGround || groundMask.value == 0)
+            return false;
+
+        Vector3 origin = new Vector3(x, refY + groundRayStartAbove, z);
+        float maxDist = groundRayStartAbove + groundRayMaxDistance;
+        int n = Physics.RaycastNonAlloc(
+            origin, Vector3.down, _groundHits, maxDist, groundMask, QueryTriggerInteraction.Ignore);
+        if (n <= 0)
+            return false;
+
+        int   best  = -1;
+        float bestD = float.MaxValue;
+        for (int i = 0; i < n; i++)
+        {
+            var h = _groundHits[i];
+            if (h.collider == null) continue;
+            var t = h.collider.transform;
+            if (t == transform || t.IsChildOf(transform)) continue;
+            if (h.distance < bestD)
+            {
+                bestD = h.distance;
+                best = i;
+            }
+        }
+
+        if (best < 0)
+            return false;
+        targetY = _groundHits[best].point.y + groundOffset;
+        return true;
     }
 
     public bool IsInSwimAreaXZ(Vector3 p)
@@ -305,14 +360,13 @@ public class LittleGooseAI : MonoBehaviour
             }
         }
 
-        float waterY = GetWaterY();
         float t = 1f - Mathf.Exp(-waterHeightLerp * dt);
-        float newY = Mathf.Lerp(pos.y, waterY, t);
-
         Vector3 next = pos + dXZ;
-        next.y = newY;
         next.x = Mathf.Clamp(next.x, _bounds.min.x + edgeMargin, _bounds.max.x - edgeMargin);
         next.z = Mathf.Clamp(next.z, _bounds.min.z + edgeMargin, _bounds.max.z - edgeMargin);
+
+        float targetY = TryGetGroundY(next.x, next.z, pos.y, out float gY) ? gY : GetWaterY();
+        next.y = Mathf.Lerp(pos.y, targetY, t);
 
         _rb.MovePosition(next);
         if (dir.sqrMagnitude > 1e-4f)
@@ -355,8 +409,8 @@ public class LittleGooseAI : MonoBehaviour
         v.z = dir.z * moveSpeed;
         _rb.linearVelocity = v;
 
-        float waterY = GetWaterY();
-        float yErr = waterY - pos.y;
+        float targetY = TryGetGroundY(pos.x, pos.z, pos.y, out float gY) ? gY : GetWaterY();
+        float yErr    = targetY - pos.y;
         _rb.AddForce(Vector3.up * (yErr * waterAlignmentStrength - v.y * 0.4f), ForceMode.Acceleration);
         // 減少側向碰撞在角速度上堆積
         _rb.angularVelocity = new Vector3(0f, _rb.angularVelocity.y, 0f);
