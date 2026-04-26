@@ -165,7 +165,13 @@ public class Nest : MonoBehaviour
         if (t != null)
         {
             t.position = target;
-            if (rb != null) rb.isKinematic = false;
+            // 維持 isKinematic（Accept 時已設 true）：若此處改回 dynamic，巢內多個
+            // Rigidbody 重疊時會因解穿透互相把對方噴飛。
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
         }
     }
 
