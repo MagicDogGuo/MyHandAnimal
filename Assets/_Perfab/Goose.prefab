@@ -273,8 +273,8 @@ MonoBehaviour:
   neckExitAxis: {x: 0, y: 0, z: 0}
   neckExitLength: 0
   bodyRotateSpeed: 180
-  maxNeckLength: 0.44
-  pullForce: 60
+  maxNeckLength: 0.37
+  pullForce: 240
 --- !u!114 &9045977798226324987
 MonoBehaviour:
   m_ObjectHideFlags: 0

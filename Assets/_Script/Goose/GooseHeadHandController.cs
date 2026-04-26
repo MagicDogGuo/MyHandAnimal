@@ -10,7 +10,8 @@ using Oculus.Interaction.Input;
 ///
 /// 場景設置步驟：
 ///   1. 將此腳本掛在鵝頭根 GameObject 上。
-///   2. hand → OVRInteractionComprehensive / OVRHands / LeftHand 上的 Hand 元件。
+///   2. hand → OVRInteractionComprehensive / OVRHands / LeftHand 上的 Hand 元件
+///      （未指定時會自動在場景內尋找名為 OVRLeftHandDataSource 的 GameObject 上的 Hand）。
 ///   3. lowerJawBone → 鵝嘴下顎骨 Transform（從 FBX Rig 層級中指定）。
 ///
 /// 嘴部旋轉調整：
@@ -76,6 +77,20 @@ public class GooseHeadHandController : MonoBehaviour
 
     // ── 私有狀態 ──────────────────────────────────────────────────────────
     private float _smoothedOpenness;
+
+    void Awake()
+    {
+        if (_hand == null)
+        {
+            var go = GameObject.Find("OVRLeftHandDataSource");
+            if (go != null)
+            {
+                _hand = go.GetComponent<Hand>();
+                if (_hand == null)
+                    _hand = go.GetComponentInChildren<Hand>(true);
+            }
+        }
+    }
 
     // ─────────────────────────────────────────────────────────────────────
     void LateUpdate()

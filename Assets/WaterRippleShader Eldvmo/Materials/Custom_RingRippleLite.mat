@@ -29,11 +29,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Decay: 3.7
+    - _Decay: 9.1
     - _HeightStrength: 0
     - _StencilRef: 0
     - _WaveFrequency: 100
-    - _WaveLiftTime: 1.7
+    - _WaveLiftTime: 10
     - _WaveSpeed: 0.005
     - _WaveStrength: 0.1
     m_Colors:
