@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Eldvmo.Ripples
@@ -12,17 +11,21 @@ namespace Eldvmo.Ripples
         private Vector4[] ripplePoints = new Vector4[10];
         private int rippleIndex = 0;
         private Vector2 _oldInputCentre;
+        private bool _hasLastInputCentre;
         private int waterLayerMask;
         [SerializeField] private Collider waterTrigger;
-        [SerializeField] bool isFloatingWithWater = true;
+        [Tooltip("關閉時只更新漣漪材質，不碰 Rigidbody（角色／鵝請維持關閉）。")]
+        [SerializeField] bool isFloatingWithWater = false;
         [SerializeField] float moveUpHeight = 2f;
         [Tooltip("在 UV 上與上一筆接觸點至少相隔這段距離才再產生漣漪")]
         [SerializeField] float minUvDistanceForNewRipple = 0.05f;
         private Rigidbody rb;
+        private Coroutine _gravityRestoreCoroutine;
 
         void Start()
         {
-            ripplePlaneCollider = ripplePlane.GetComponent<Collider>();
+            if (ripplePlane != null)
+                ripplePlaneCollider = ripplePlane.GetComponent<Collider>();
             waterLayerMask = LayerMask.GetMask("Water");
             rb = GetComponent<Rigidbody>();
         }
@@ -41,6 +44,9 @@ namespace Eldvmo.Ripples
             if (ripplePlaneCollider != null && other == waterTrigger)
             {
                 isInWater = false;
+                StopGravityRestoreRoutine();
+                if (rb != null)
+                    rb.useGravity = true;
             }
         }
 
@@ -58,36 +64,58 @@ namespace Eldvmo.Ripples
             {
                 Vector2 uv = hit.textureCoord;
 
-                if (_oldInputCentre != null && Vector2.Distance(_oldInputCentre, uv) < minUvDistanceForNewRipple) return;
+                if (_hasLastInputCentre && Vector2.Distance(_oldInputCentre, uv) < minUvDistanceForNewRipple)
+                    return;
 
                 ripplePoints[rippleIndex] = new Vector4(uv.x, uv.y, Time.time, 0);
                 rippleIndex = (rippleIndex + 1) % ripplePoints.Length;
                 _oldInputCentre = uv;
+                _hasLastInputCentre = true;
 
-                //Set ripple centre (ray hit point) to ripple material
-                ripplePlane.material.SetVectorArray("_InputCentre", ripplePoints);
+                if (ripplePlane != null)
+                    ripplePlane.material.SetVectorArray("_InputCentre", ripplePoints);
 
-                //Moving boat up and down
                 if (!isFloatingWithWater) return;
+                if (rb == null) return;
 
                 SetObjectHeight(hit.point.y + moveUpHeight);
                 rb.useGravity = false;
-                StartCoroutine(EnableGravity());
+                RestartGravityRestoreRoutine();
             }
         }
 
+        /// <summary>
+        /// 必須改 <see cref="Rigidbody.position"/>，勿直接改 <see cref="Transform.position"/>，
+        /// 否則會與物理步進不同步，容易出現非預期旋轉／抖動。
+        /// </summary>
         private void SetObjectHeight(float targetHeight)
         {
-            Vector3 currentPos = transform.position;
-            currentPos.y = Mathf.Lerp(currentPos.y, targetHeight, Time.fixedDeltaTime * 0.5f);
-            transform.position = currentPos;
+            Vector3 p = rb.position;
+            p.y = Mathf.Lerp(p.y, targetHeight, Time.fixedDeltaTime * 0.5f);
+            rb.position = p;
         }
 
-        //Fake boat skipping wave
+        void RestartGravityRestoreRoutine()
+        {
+            StopGravityRestoreRoutine();
+            _gravityRestoreCoroutine = StartCoroutine(EnableGravity());
+        }
+
+        void StopGravityRestoreRoutine()
+        {
+            if (_gravityRestoreCoroutine != null)
+            {
+                StopCoroutine(_gravityRestoreCoroutine);
+                _gravityRestoreCoroutine = null;
+            }
+        }
+
         private IEnumerator EnableGravity()
         {
             yield return new WaitForSeconds(0.5f);
-            rb.useGravity = true;
+            if (rb != null)
+                rb.useGravity = true;
+            _gravityRestoreCoroutine = null;
         }
     }
 }

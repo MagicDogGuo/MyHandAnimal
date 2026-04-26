@@ -274,7 +274,7 @@ MonoBehaviour:
   neckExitLength: 0
   bodyRotateSpeed: 180
   maxNeckLength: 0.44
-  pullForce: 29
+  pullForce: 60
 --- !u!114 &9045977798226324987
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1014,7 +1014,7 @@ SphereCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Radius: 0.13
-  m_Center: {x: -0.06911982, y: -0.00001239115, z: 0.0003840402}
+  m_Center: {x: -0.06911982, y: -0.00001239115, z: 0.02}
 --- !u!1 &7926465127937023058
 GameObject:
   m_ObjectHideFlags: 0
@@ -1122,6 +1122,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ripplePlane: {fileID: 0}
   waterTrigger: {fileID: 0}
-  isFloatingWithWater: 1
+  isFloatingWithWater: 0
   moveUpHeight: 0
   minUvDistanceForNewRipple: 0.005
