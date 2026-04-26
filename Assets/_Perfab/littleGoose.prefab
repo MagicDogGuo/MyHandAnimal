@@ -56,7 +56,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410666996790630137}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.0056278966, y: -0, z: -0, w: 0.9999842}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -0.031011743, z: 0.013316466}
   m_LocalScale: {x: 10.229585, y: 9.311431, z: 11.216358}
   m_ConstrainProportionsScale: 0
@@ -318,7 +318,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 27
+  m_VersionIndex: 69
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -620,7 +620,7 @@ Transform:
   m_GameObject: {fileID: 1870002734196364330}
   serializedVersion: 2
   m_LocalRotation: {x: -0.5, y: 0.5, z: 0.5, w: 0.5}
-  m_LocalPosition: {x: 0.013900042, y: -0.04116018, z: -0.004512489}
+  m_LocalPosition: {x: 0.01390004, y: -0.04116018, z: -0.004512489}
   m_LocalScale: {x: 0.22976, y: 0.22976, z: 0.22976}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -751,6 +751,7 @@ GameObject:
   - component: {fileID: 5016656236247623798}
   - component: {fileID: 7766554433221100997}
   - component: {fileID: 7766554433221100998}
+  - component: {fileID: 3214567471258061265}
   m_Layer: 0
   m_Name: littleGoose
   m_TagString: Untagged
@@ -914,6 +915,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e1c8a3b2d5f4097a1b2c3d4e5f67890, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  countsTowardsGoal: 1
 --- !u!114 &7766554433221100998
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -929,7 +931,7 @@ MonoBehaviour:
   swimArea: {fileID: 0}
   waterSurfaceY: 0.1
   defaultSwimHalfExtents: {x: 3, y: 3}
-  moveSpeed: 0.1
+  moveSpeed: 0.2
   turnDegreesPerSecond: 120
   minWaypointInterval: 2
   maxWaypointInterval: 5.5
@@ -944,12 +946,36 @@ MonoBehaviour:
     m_Bits: 4294967295
   castSkin: 0.03
   waterHeightLerp: 12
-  headBone: {fileID: 0}
+  snapToGround: 1
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  groundRayStartAbove: 1.5
+  groundRayMaxDistance: 8
+  groundOffset: 0.05
+  headBone: {fileID: 3027878735677432098}
   lookAtTarget: {fileID: 0}
-  lookAtRange: 3
+  lookAtRange: 1
   lookAtSlerpSpeed: 6
-  lookMaxYaw: 5
-  lookMaxPitch: 5
+  lookMaxYaw: 10
+  lookMaxPitch: 10
+--- !u!114 &3214567471258061265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3713038272082189317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bbdeae7d0d9b3c448cdf7a0fd6222c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ripplePlane: {fileID: 0}
+  waterTrigger: {fileID: 0}
+  isFloatingWithWater: 1
+  moveUpHeight: 0
+  minUvDistanceForNewRipple: 0.005
 --- !u!1 &3792974477680079789
 GameObject:
   m_ObjectHideFlags: 0
@@ -1124,7 +1150,7 @@ Transform:
   m_GameObject: {fileID: 4594748273656234858}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.019899964, y: 0.0229, z: 0.0361}
+  m_LocalPosition: {x: 0.0199, y: 0.0229, z: 0.0361}
   m_LocalScale: {x: 0.004742423, y: 0.004742423, z: 0.004742423}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1525,7 +1551,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 27
+  m_VersionIndex: 69
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -1861,7 +1887,7 @@ Transform:
   m_GameObject: {fileID: 8589290124633857325}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.019899964, y: 0.0229, z: 0.0377}
+  m_LocalPosition: {x: -0.0199, y: 0.0229, z: 0.0375}
   m_LocalScale: {x: 0.004742423, y: 0.004742423, z: 0.004742423}
   m_ConstrainProportionsScale: 0
   m_Children: []
