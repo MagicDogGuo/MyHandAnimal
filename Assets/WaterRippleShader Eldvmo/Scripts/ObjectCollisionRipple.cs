@@ -8,6 +8,7 @@ namespace Eldvmo.Ripples
         private bool isInWater = false;
         [SerializeField] private MeshRenderer ripplePlane;
         private Collider ripplePlaneCollider;
+        private WaterRippleSurface _rippleSurface;
         private Vector4[] ripplePoints = new Vector4[10];
         private int rippleIndex = 0;
         private Vector2 _oldInputCentre;
@@ -25,7 +26,10 @@ namespace Eldvmo.Ripples
         void Start()
         {
             if (ripplePlane != null)
+            {
                 ripplePlaneCollider = ripplePlane.GetComponent<Collider>();
+                _rippleSurface = ripplePlane.GetComponent<WaterRippleSurface>();
+            }
             waterLayerMask = LayerMask.GetMask("Water");
             rb = GetComponent<Rigidbody>();
         }
@@ -67,13 +71,17 @@ namespace Eldvmo.Ripples
                 if (_hasLastInputCentre && Vector2.Distance(_oldInputCentre, uv) < minUvDistanceForNewRipple)
                     return;
 
-                ripplePoints[rippleIndex] = new Vector4(uv.x, uv.y, Time.time, 0);
-                rippleIndex = (rippleIndex + 1) % ripplePoints.Length;
                 _oldInputCentre = uv;
                 _hasLastInputCentre = true;
 
-                if (ripplePlane != null)
+                if (_rippleSurface != null)
+                    _rippleSurface.PushRipple(uv);
+                else if (ripplePlane != null)
+                {
+                    ripplePoints[rippleIndex] = new Vector4(uv.x, uv.y, Time.time, 0);
+                    rippleIndex = (rippleIndex + 1) % ripplePoints.Length;
                     ripplePlane.material.SetVectorArray("_InputCentre", ripplePoints);
+                }
 
                 if (!isFloatingWithWater) return;
                 if (rb == null) return;
