@@ -19,7 +19,7 @@ using UnityEngine;
 ///
 /// mouthAnchor：
 ///   鵝頭 GameObject 下的子空物件，對齊嘴尖位置。
-///   在 Inspector 直接拖入，或建立 Tag "MouthAnchor" 自動搜尋。
+///   在 Inspector 直接拖入，或留空則先依**名稱** MouthAnchor 尋找，再嘗試 Tag "MouthAnchor"。
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(HandGrabInteractable))]
@@ -30,7 +30,7 @@ public class BreadSnapToMouth : MonoBehaviour
     public Handedness allowedHand = Handedness.Left;
 
     [Header("Snap 目標")]
-    [Tooltip("鵝嘴尖端錨點（Inspector 直接拖入，或留空以 Tag 自動找）")]
+    [Tooltip("鵝嘴尖端錨點（Inspector 直接拖入，或留空則先找名稱 MouthAnchor 再試 Tag）")]
     public Transform mouthAnchor;
 
     [Header("Snap 設定")]
@@ -62,11 +62,13 @@ public class BreadSnapToMouth : MonoBehaviour
 
         if (mouthAnchor == null)
         {
-            GameObject anchor = GameObject.FindGameObjectWithTag("MouthAnchor");
+            GameObject anchor = GameObject.Find("MouthAnchor");
+            if (anchor == null)
+                anchor = GameObject.FindGameObjectWithTag("MouthAnchor");
             if (anchor != null)
                 mouthAnchor = anchor.transform;
             else
-                Debug.LogWarning("[BreadSnapToMouth] 找不到 mouthAnchor，請在 Inspector 指定或建立 Tag 為 MouthAnchor 的物件。", this);
+                Debug.LogWarning("[BreadSnapToMouth] 找不到 mouthAnchor，請在 Inspector 指定、或建立名稱為 MouthAnchor 的物件、或 Tag 為 MouthAnchor。", this);
         }
     }
 

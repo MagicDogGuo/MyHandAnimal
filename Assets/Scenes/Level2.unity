@@ -809,6 +809,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
+--- !u!4 &286171378 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7884788444828752153, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
+  m_PrefabInstance: {fileID: 286171377}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &296874871
 GameObject:
   m_ObjectHideFlags: 0
@@ -1658,14 +1663,14 @@ PrefabInstance:
     - target: {fileID: 972671895093543481, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 932637079}
     - target: {fileID: 1981195586170420557, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 932637079}
     - target: {fileID: 1981195586170420557, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: m_VersionIndex
-      value: 72
+      value: 75
       objectReference: {fileID: 0}
     - target: {fileID: 2685560495782352230, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1734,7 +1739,7 @@ PrefabInstance:
     - target: {fileID: 6216868543448209552, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 2053809702}
     - target: {fileID: 7766554433221100998, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: defaultSwimHalfExtents.x
       value: 2
@@ -1745,7 +1750,7 @@ PrefabInstance:
       objectReference: {fileID: 2053809702}
     - target: {fileID: 8811313695765836982, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: m_VersionIndex
-      value: 72
+      value: 75
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -3666,14 +3671,14 @@ PrefabInstance:
     - target: {fileID: 1615778412131701433, guid: 96417f2557e67d84b964d55dca88a245, type: 3}
       propertyPath: mouthAnchor
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 286171378}
     - target: {fileID: 2164368815784250288, guid: 96417f2557e67d84b964d55dca88a245, type: 3}
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3028700909710774966, guid: 96417f2557e67d84b964d55dca88a245, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.3589725
+      value: 1.358973
       objectReference: {fileID: 0}
     - target: {fileID: 3028700909710774966, guid: 96417f2557e67d84b964d55dca88a245, type: 3}
       propertyPath: m_LocalScale.y
@@ -3681,15 +3686,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3028700909710774966, guid: 96417f2557e67d84b964d55dca88a245, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.7589827
+      value: 1.7589823
       objectReference: {fileID: 0}
     - target: {fileID: 3028700909710774966, guid: 96417f2557e67d84b964d55dca88a245, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.047999945
+      value: 0.04799995
       objectReference: {fileID: 0}
     - target: {fileID: 3028700909710774966, guid: 96417f2557e67d84b964d55dca88a245, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 3.0900004
+      value: 3.0900006
       objectReference: {fileID: 0}
     - target: {fileID: 3028700909710774966, guid: 96417f2557e67d84b964d55dca88a245, type: 3}
       propertyPath: m_LocalPosition.z
@@ -4071,14 +4076,14 @@ PrefabInstance:
     - target: {fileID: 972671895093543481, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1699711808}
     - target: {fileID: 1981195586170420557, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 1699711808}
     - target: {fileID: 1981195586170420557, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: m_VersionIndex
-      value: 72
+      value: 75
       objectReference: {fileID: 0}
     - target: {fileID: 2685560495782352230, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -4147,7 +4152,7 @@ PrefabInstance:
     - target: {fileID: 6216868543448209552, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1406786047}
     - target: {fileID: 7766554433221100998, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: defaultSwimHalfExtents.x
       value: 2
@@ -4162,7 +4167,7 @@ PrefabInstance:
       objectReference: {fileID: 1406786047}
     - target: {fileID: 8811313695765836982, guid: 2cc2402594b9587428fdfe3690699a2a, type: 3}
       propertyPath: m_VersionIndex
-      value: 72
+      value: 75
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5780,7 +5785,7 @@ PrefabInstance:
     - target: {fileID: 5014821789403823546, guid: 5d16d4dc0e3c73f40976925004f68a7d, type: 3}
       propertyPath: mouthAnchor
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 286171378}
     - target: {fileID: 5528155540739090519, guid: 5d16d4dc0e3c73f40976925004f68a7d, type: 3}
       propertyPath: m_Name
       value: Loaf
@@ -7085,7 +7090,7 @@ PrefabInstance:
     - target: {fileID: 617653599826203878, guid: b884e0aa9ae878044a34a229704b248e, type: 3}
       propertyPath: mouthAnchor
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 286171378}
     - target: {fileID: 3339868572734695387, guid: b884e0aa9ae878044a34a229704b248e, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.7589818
@@ -10250,7 +10255,7 @@ PrefabInstance:
     - target: {fileID: 8115259527401675221, guid: 0105b3c9ea1c0cd4089e91e4e57e8271, type: 3}
       propertyPath: mouthAnchor
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 286171378}
     - target: {fileID: 8886898953372188303, guid: 0105b3c9ea1c0cd4089e91e4e57e8271, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.617
