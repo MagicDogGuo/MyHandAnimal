@@ -111,11 +111,11 @@ public class GameManager : MonoBehaviour
     {
         SetUI(failUI, false);
 
-        // 重置巢計數器（不 Destroy，麵包的 ResetToSpawn 會解除 Parent）
+        // 重置巢計數器（不 Destroy，麵包 ResetToSpawn 會還原初始父與位置）
         if (nest != null)
             nest.ResetNest();
 
-        // 所有麵包回到初始位置
+        // 所有麵包回到初始父物件下與初始 Local 姿態
         foreach (Bread bread in breads)
         {
             if (bread != null)
