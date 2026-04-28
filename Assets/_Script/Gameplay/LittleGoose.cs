@@ -33,6 +33,34 @@ public class LittleGoose : MonoBehaviour
         _mouthSnap = GetComponent<BreadSnapToMouth>();
     }
 
+    void OnEnable()
+    {
+        if (_mouthSnap == null && _handGrab != null)
+            _handGrab.WhenSelectingInteractorViewAdded += OnHandGrabbedForPickupSfx;
+    }
+
+    void OnDisable()
+    {
+        if (_handGrab != null)
+            _handGrab.WhenSelectingInteractorViewAdded -= OnHandGrabbedForPickupSfx;
+    }
+
+    /// <summary>
+    /// 無嘴部吸附時，抓取成功與否需等下一幀確認（與 HandGrabRestrictor 放開錯手對齊）。
+    /// </summary>
+    void OnHandGrabbedForPickupSfx(IInteractorView interactor)
+    {
+        StartCoroutine(PlayPickupSfxIfStillHeldNextFrame());
+    }
+
+    IEnumerator PlayPickupSfxIfStillHeldNextFrame()
+    {
+        yield return null;
+        if (_handGrab == null || !_handGrab.SelectingInteractorViews.Any()) yield break;
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayLittleGoosePickup();
+    }
+
     /// <summary>入巢前呼叫：解除嘴部吸附、嘗試放開手抓、解除 Parent。</summary>
     public void DetachFromCarry()
     {

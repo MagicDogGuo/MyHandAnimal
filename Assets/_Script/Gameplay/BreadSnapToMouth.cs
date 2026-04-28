@@ -106,6 +106,14 @@ public class BreadSnapToMouth : MonoBehaviour
         // _snapStartLocalPos = transform.localPosition;
         // _snapStartLocalRot = transform.localRotation;
         _snapTimer         = 0f;
+
+        if (AudioManager.Instance != null)
+        {
+            if (GetComponent<Bread>() != null)
+                AudioManager.Instance.PlayBreadPickup();
+            else if (GetComponent<LittleGoose>() != null)
+                AudioManager.Instance.PlayLittleGoosePickup();
+        }
     }
 
     // ── 非允許手的強制釋放（延一幀避免事件重入）─────────────────────────────

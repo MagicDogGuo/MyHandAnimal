@@ -1,15 +1,15 @@
 using UnityEngine;
 
 /// <summary>
-/// 音效管理單例，負責 BGM 播放與通關 / 失敗音效。
+/// 音效管理單例，負責 BGM 與共用 SFX。
 ///
 /// 職責：
 ///   - BGM：循環播放背景音樂；可淡入淡出切換
-///   - SFX：PlayClear() / PlayFail() 供 GameManager 呼叫
+///   - SFX：過關 / 失敗、左手張開鵝叫、小鵝／麵包拿起等（由各遊戲腳本呼叫）
 ///
 /// Scene 設置：
 ///   1. 建立空 GameObject 命名 "AudioManager"，掛上此腳本
-///   2. Inspector 拖入 bgmClip、clearClip、failClip
+///   2. Inspector 拖入 bgmClip、clearClip、failClip、handOpenGooseHonkClip、littleGoosePickupClip、breadPickupClip
 ///   3. 選填：調整 bgmVolume / sfxVolume
 ///
 /// 接線：
@@ -38,6 +38,15 @@ public class AudioManager : MonoBehaviour
 
     [Tooltip("失敗音效")]
     public AudioClip failClip;
+
+    [Tooltip("左手張開到一定程度時的鵝叫（由 GooseHeadHandController 觸發）")]
+    public AudioClip handOpenGooseHonkClip;
+
+    [Tooltip("小鵝被拿起時")]
+    public AudioClip littleGoosePickupClip;
+
+    [Tooltip("麵包被拿起（吸附嘴前）")]
+    public AudioClip breadPickupClip;
 
     [Range(0f, 1f)]
     public float sfxVolume = 1f;
@@ -111,6 +120,24 @@ public class AudioManager : MonoBehaviour
     public void PlayFail()
     {
         PlaySFX(failClip);
+    }
+
+    /// <summary>左手張開觸發的鵝叫（由 GooseHeadHandController 呼叫）。</summary>
+    public void PlayHandOpenGooseHonk()
+    {
+        PlaySFX(handOpenGooseHonkClip);
+    }
+
+    /// <summary>小鵝被拿起（由 BreadSnapToMouth / LittleGoose 呼叫）。</summary>
+    public void PlayLittleGoosePickup()
+    {
+        PlaySFX(littleGoosePickupClip);
+    }
+
+    /// <summary>麵包被拿起（由 BreadSnapToMouth 呼叫）。</summary>
+    public void PlayBreadPickup()
+    {
+        PlaySFX(breadPickupClip);
     }
 
     /// <summary>一次性播放任意 SFX。</summary>

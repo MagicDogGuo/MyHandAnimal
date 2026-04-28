@@ -8263,6 +8263,9 @@ MonoBehaviour:
   bgmFadeDuration: 1
   clearClip: {fileID: 8300000, guid: 82fa1abb08f098547941cd016eef555e, type: 3}
   failClip: {fileID: 8300000, guid: 0d9d48d835f45bb41973f7b23702e401, type: 3}
+  handOpenGooseHonkClip: {fileID: 8300000, guid: 4f9e1ed6cbd36a749b93f262a9d085f8, type: 3}
+  littleGoosePickupClip: {fileID: 8300000, guid: bb6e3f47d020e064ebe074336c3b6264, type: 3}
+  breadPickupClip: {fileID: 8300000, guid: cab1bca1d1de2de4281b77dc4a3b52a0, type: 3}
   sfxVolume: 1
 --- !u!4 &2048880178
 Transform:
@@ -9137,6 +9140,18 @@ PrefabInstance:
       propertyPath: _hand
       value: 
       objectReference: {fileID: 281664091}
+    - target: {fileID: 5547237540089348568, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
+      propertyPath: honkOpenOpenness
+      value: 0.945
+      objectReference: {fileID: 0}
+    - target: {fileID: 5547237540089348568, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
+      propertyPath: pinchOpenThreshold
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5547237540089348568, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
+      propertyPath: pinchClosedThreshold
+      value: 0.15
+      objectReference: {fileID: 0}
     - target: {fileID: 6909744752561956532, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
       propertyPath: m_Name
       value: Goose

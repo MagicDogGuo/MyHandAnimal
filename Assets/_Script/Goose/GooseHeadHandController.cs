@@ -75,8 +75,24 @@ public class GooseHeadHandController : MonoBehaviour
     [Range(0f, 1f)]
     public float debugCurrentOpenness;
 
+    // ── 音效：左手張開鵝叫 ─────────────────────────────────────────────────
+    [Header("音效（張手鵝叫）")]
+    [Tooltip("平滑開合度 ≥ 此值視為「張開」，可觸發一次鵝叫")]
+    [Range(0f, 1f)]
+    public float honkOpenOpenness = 0.88f;
+
+    [Tooltip("低於此值後才允許再次觸發（避免在閾值附近抖動重複叫）")]
+    [Range(0f, 1f)]
+    public float honkResetOpenness = 0.45f;
+
+    [Tooltip("兩次鵝叫最短間隔（秒）")]
+    [Range(0.05f, 3f)]
+    public float honkCooldownSeconds = 0.55f;
+
     // ── 私有狀態 ──────────────────────────────────────────────────────────
     private float _smoothedOpenness;
+    private bool  _honkArmed = true;
+    private float _honkCooldownTimer;
 
     void Awake()
     {
@@ -137,6 +153,26 @@ public class GooseHeadHandController : MonoBehaviour
         Quaternion closedRot = Quaternion.Euler(jawClosedRotation);
         Quaternion openRot   = Quaternion.Euler(jawOpenRotation);
         lowerJawBone.localRotation = Quaternion.Slerp(closedRot, openRot, _smoothedOpenness);
+
+        UpdateHandOpenHonk();
+    }
+
+    void UpdateHandOpenHonk()
+    {
+        if (_honkCooldownTimer > 0f)
+            _honkCooldownTimer -= Time.deltaTime;
+
+        if (_smoothedOpenness < honkResetOpenness)
+            _honkArmed = true;
+
+        if (!_honkArmed || _honkCooldownTimer > 0f) return;
+        if (_smoothedOpenness < honkOpenOpenness) return;
+
+        _honkArmed = false;
+        _honkCooldownTimer = honkCooldownSeconds;
+
+        if (AudioManager.Instance != null)
+            AudioManager.Instance.PlayHandOpenGooseHonk();
     }
 
     // ── 開合度計算 ────────────────────────────────────────────────────────
