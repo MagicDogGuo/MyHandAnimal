@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.Splines;
 using Unity.Mathematics;
 
@@ -55,6 +56,11 @@ public class NeckSplineController : MonoBehaviour
     [Header("脖子限制")]
     [Tooltip("脖子最大長度（公尺）；超過時對身體施拉力")]
     public float maxNeckLength = 1.2f;
+
+    [Tooltip("槍手勢移動鎖定門檻 = maxNeckLength + 此值（公尺），由 maxNeckLength 往外擴。達到該距離才禁止移動；0 = 與 maxNeckLength 齊平即鎖。")]
+    [FormerlySerializedAs("locomotionNeckReserve")]
+    [Min(0f)]
+    public float locomotionBeyondMaxNeck = 0.5f;
 
     [Tooltip("拉力係數，乘上超出距離後加到 Rigidbody")]
     public float pullForce = 8f;
@@ -202,6 +208,26 @@ public class NeckSplineController : MonoBehaviour
 
         // 只寫 Y 軸角速度；X/Z 由 Freeze Constraints 維持在 0
         _bodyRb.angularVelocity = new Vector3(0f, yAngularVel, 0f);
+    }
+
+    /// <summary>
+    /// 目前頭身直線距離（與 HandleNeckPull / Gizmo 使用相同度量）。
+    /// </summary>
+    public float CurrentNeckLength()
+    {
+        if (duckHead == null || duckBody == null) return 0f;
+        return Vector3.Distance(duckHead.position, duckBody.position);
+    }
+
+    /// <summary>
+    /// 脖子尚未達「移動鎖定」門檻時為 true。
+    /// 門檻 = maxNeckLength + locomotionBeyondMaxNeck（在 max 基礎上往外擴）。
+    /// </summary>
+    public bool AllowsGunGestureLocomotion()
+    {
+        if (duckHead == null || duckBody == null) return true;
+        float limit = maxNeckLength + locomotionBeyondMaxNeck;
+        return CurrentNeckLength() < limit;
     }
 
     /// <summary>

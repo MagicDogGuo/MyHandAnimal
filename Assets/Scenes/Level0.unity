@@ -2695,9 +2695,11 @@ MonoBehaviour:
   accelerationTime: 0.3
   decelerationTime: 0.2
   horizontalOnly: 1
+  neckSpline: {fileID: 1821829892634870121}
   debugLog: 0
   debugIsGunGesture: 0
   debugSpeedRatio: 0
+  debugBlockedByNeck: 0
   debugForceGunGesture: 0
 --- !u!1 &862937401
 GameObject:
@@ -9128,6 +9130,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4132317217233935863, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
+      propertyPath: locomotionBeyondMaxNeck
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 4862018391238616079, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
       propertyPath: ripplePlane
       value: 
@@ -9201,6 +9207,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
+--- !u!114 &1821829892634870121 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4132317217233935863, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
+  m_PrefabInstance: {fileID: 1821829892634870120}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3120fba954022ad4ba3dc510ef118bf5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!23 &2210655060101233992
 MeshRenderer:
   m_ObjectHideFlags: 0

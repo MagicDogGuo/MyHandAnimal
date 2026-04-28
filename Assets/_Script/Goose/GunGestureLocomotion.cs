@@ -61,6 +61,11 @@ public class GunGestureLocomotion : MonoBehaviour
     [Tooltip("啟用後只在水平面（XZ）移動，忽略食指的上下傾斜")]
     public bool horizontalOnly = true;
 
+    [Header("脖子伸長限制（可選）")]
+    [Tooltip("未指定時於 Awake 自動 FindFirstObjectByType 尋找。依其 maxNeckLength + locomotionBeyondMaxNeck：脖子伸到該門檻時禁止槍手勢移動。")]
+    [SerializeField]
+    private NeckSplineController neckSpline;
+
     // ── 除錯 ──────────────────────────────────────────────────────────────
     [Header("除錯")]
     [Tooltip("啟用後在 Console 輸出手勢偵測資訊")]
@@ -72,6 +77,9 @@ public class GunGestureLocomotion : MonoBehaviour
     [Tooltip("唯讀：目前速度比例（0~1）")]
     [Range(0f, 1f)]
     public float debugSpeedRatio;
+
+    [Tooltip("唯讀：是否因脖子伸長已達上限而暫停移動")]
+    public bool debugBlockedByNeck;
 
     // ── 私有狀態 ──────────────────────────────────────────────────────────
     private float _currentSpeedRatio = 0f;
@@ -92,6 +100,9 @@ public class GunGestureLocomotion : MonoBehaviour
         _locomotor = GetComponentInChildren<FirstPersonLocomotor>();
         if (_locomotor == null)
             Debug.LogWarning("[GunGesture] 找不到 FirstPersonLocomotor，將直接修改 transform.position（無碰撞）");
+
+        if (neckSpline == null)
+            neckSpline = FindFirstObjectByType<NeckSplineController>(FindObjectsInactive.Exclude);
     }
 
     void Update()
@@ -110,6 +121,7 @@ public class GunGestureLocomotion : MonoBehaviour
         if (!handReady)
         {
             DecelerateAndStop();
+            debugBlockedByNeck = false;
             return;
         }
 
@@ -124,7 +136,10 @@ public class GunGestureLocomotion : MonoBehaviour
         _isMoving = _gestureFrameCount >= activationFrames;
         debugIsGunGesture = _isMoving;
 
-        if (_isMoving)
+        bool neckAllowsMove = neckSpline == null || neckSpline.AllowsGunGestureLocomotion();
+        debugBlockedByNeck = _isMoving && !neckAllowsMove;
+
+        if (_isMoving && neckAllowsMove)
         {
             // 加速至 1
             float accelRate = accelerationTime > 0f ? Time.deltaTime / accelerationTime : 1f;
@@ -148,6 +163,7 @@ public class GunGestureLocomotion : MonoBehaviour
         }
         else
         {
+            // 手勢結束或因脖子達上限停止推進時減速
             DecelerateAndStop();
         }
 
