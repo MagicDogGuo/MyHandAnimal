@@ -140,7 +140,7 @@ public class LittleGooseAI : MonoBehaviour
 
         if (lookAtTarget == null)
         {
-            var mouth = GameObject.FindGameObjectWithTag("MouthAnchor");
+            var mouth = GameObject.Find("MouthAnchor");
             if (mouth != null) lookAtTarget = mouth.transform;
         }
     }
