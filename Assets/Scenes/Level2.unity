@@ -748,6 +748,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4132317217233935863, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
+      propertyPath: locomotionBeyondMaxNeck
+      value: 0.6
+      objectReference: {fileID: 0}
     - target: {fileID: 4862018391238616079, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
       propertyPath: ripplePlane
       value: 
@@ -814,6 +818,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7884788444828752153, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
   m_PrefabInstance: {fileID: 286171377}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &286171379 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4132317217233935863, guid: d9ce1f3ef330b8a4ab5ea8e6fa69a3ba, type: 3}
+  m_PrefabInstance: {fileID: 286171377}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3120fba954022ad4ba3dc510ef118bf5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &296874871
 GameObject:
   m_ObjectHideFlags: 0
@@ -2786,9 +2801,11 @@ MonoBehaviour:
   accelerationTime: 0.3
   decelerationTime: 0.2
   horizontalOnly: 1
+  neckSpline: {fileID: 286171379}
   debugLog: 0
   debugIsGunGesture: 0
   debugSpeedRatio: 0
+  debugBlockedByNeck: 0
   debugForceGunGesture: 0
 --- !u!1 &862937401
 GameObject:
@@ -8215,6 +8232,9 @@ MonoBehaviour:
   bgmFadeDuration: 1
   clearClip: {fileID: 8300000, guid: 82fa1abb08f098547941cd016eef555e, type: 3}
   failClip: {fileID: 8300000, guid: 0d9d48d835f45bb41973f7b23702e401, type: 3}
+  handOpenGooseHonkClip: {fileID: 0}
+  littleGoosePickupClip: {fileID: 0}
+  breadPickupClip: {fileID: 0}
   sfxVolume: 1
 --- !u!4 &2048880178
 Transform:

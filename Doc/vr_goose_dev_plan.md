@@ -1,14 +1,18 @@
 # 🪿 VR 鵝頭偷麵包 — 遊戲設計 + 開發規劃文件
 
-> **版本：** v2.0　**最後更新：** 2026-04-24　**引擎：** Unity 6 (URP) + Meta all in one Plugin (Meta SDK)
+> **版本：** v2.0　**最後更新：** 2026-04-30　**引擎：** Unity 6 (URP) + Meta all in one Plugin (Meta SDK)
 
 ---
 
 ## 核心概念與背景
 
+**Slogan（宣傳標語）：** 通過各種關卡 成為合格的鵝媽媽吧!
+
 **背景故事：** 小鵝喜歡吃麵包；玩家扮演的鵝要去**偷麵包**，並在後續關卡中把**游來游去的小鵝**抓回巢裡。
 
 **操作核心：** 玩家用手模擬鵝頭，控制嘴部開合與頭部轉向，伸長脖子取物（麵包 / 必要時含小鵝）帶回巢中。
+
+**移動類型（舒適度 / 商店標示）：** 本作為 **Comfort / 有限制移動（Comfortable／limited locomotion）** — 玩家在場景中以 **右手「手槍手勢」** 驅動**水平方向**位移（程式：`GunGestureLocomotion`，經 Meta `FirstPersonLocomotor`，帶碰撞），**不是**自由房間級走動或大範圍瞬移作主軸。當脖子（頭／身距離）伸到約定門檻時會**禁止再往前推**，避免身體與頸伸過度組合加重暈眩風險（見下文 `NeckSplineController`）。
 
 **新互動：** 除麵包外，關卡目標包含**抓小鵝回巢**（與巢的 Trigger 判定、計數邏輯需支援 `Bread` 與 `LittleGoose` 兩類可交付物）。
 
@@ -136,6 +140,7 @@
 ## 概述：程式任務（Unity / C#）
 
 - **VR 基礎** — XR Origin、Meta SDK、手部追蹤、`HandGrabInteractor`。
+- **有限制移動** — `GunGestureLocomotion`（掛於 Camera Rig）：右手槍手勢驅動 `FirstPersonLocomotor` **水平位移**；`NeckSplineController.AllowsGunGestureLocomotion()` 在頭身距離 ≥ `maxNeckLength + locomotionBeyondMaxNeck` 時**鎖定槍手勢前移**。
 - **Snap Grabbing** — 麵包與小鵝 Prefab 掛 `Grabbable` + `HandGrabInteractable`；嘴部錨點吸附。
 - **Nest** — 擴充為：`requiredBread`、`requiredGoose`（或 ScriptableObject 關卡表）；`OnTriggerEnter` 分辨 `Bread` / `LittleGoose`；過關條件兩者皆達標。
 - **第零關** — 單一麵包入巢 → `LoadScene("Level1")` 或 `GameManager` 狀態切換。
@@ -146,6 +151,18 @@
 ---
 
 ## 程式設計建議（沿用與調整）
+
+### 有限制移動：`GunGestureLocomotion` 與脖子伸長門檻（`NeckSplineController`）
+
+**定位：** Meta Quest／App Lab 等平台可將本作標為 **Comfortable／limited locomotion**；並在說明文宣中註明「手勢按住移動」，供玩家評估是否在安全空間／座椅遊玩。
+
+**觸發手勢（右手）：** **槍手勢** — 食指伸直（Pinch 低、`indexExtendedThreshold`）、食指指尖離手腕距離大於 `indexExtendedMinDist`（排除「比讚」誤判）、中指／無名指／小指「握拳」（指尖到手腕距離小於 `fingerCurledMaxDist`）。連續 `activationFrames` 幀達成才啟動，避免瞬間誤觸。**方向：** `HandIndex1` → `HandIndexTip` 世界空間向量。
+
+**位移實作：** 取用子物件上 **Meta Interaction SDK `FirstPersonLocomotor`**：`HandleLocomotionEvent` 使用 `LocomotionEvent.TranslationType.Relative`，**帶 PhysX 碰撞**；若無則退化為直接累加 `transform.position`。預設 `horizontalOnly = true`：**只沿地面水平面**，忽略食指俯仰。**速度／手感：** `moveSpeed`、`accelerationTime`、`decelerationTime`；手鬆開或進入鎖定時會減速至停。**除錯：** `debugBlockedByNeck`、`debugForceGunGesture`（Editor：`P` 鍵）。
+
+**脖子伸長與鎖定位移：** `GunGestureLocomotion` 可指到場景中的 **`NeckSplineController`**（未指派時於 `Awake` 自動 `FindFirstObjectByType`）。**禁止槍手勢移動的門檻**由 `NeckSplineController.AllowsGunGestureLocomotion()` 決定：目前頭／身距離 `CurrentNeckLength()` **小於** `maxNeckLength + locomotionBeyondMaxNeck` 才可移動；**達或大於門檻**時不推進並走減速邏輯（`locomotionBeyondMaxNeck = 0` 表示與 `maxNeckLength` 對齊即鎖）。**注意：** 超過 `maxNeckLength` 另有 `pullForce` 物理拉力拉身體；與「移動鎖定」門檻分開，`locomotionBeyondMaxNeck` 可在達 max 後再容忍一段長度才把位移關閉。
+
+**場景掛載（摘要）：** 腳本掛 **`[BuildingBlock] Camera Rig`**；`hand` → `OVRInteractionComprehensive`／`OVRHands`／`RightHand` 上的 **`Hand`** 組件。
 
 ### 1. Snap Grabbing（麵包）
 
@@ -334,6 +351,8 @@ public class Guard : MonoBehaviour
 
 ## Unity 場景結構建議（更新）
 
+**路徑說明：** 鵝頭、脖子 Spline、槍手勢位移等腳本位於 `Assets/_Script/Goose/`（例如 `GunGestureLocomotion.cs`、`NeckSplineController.cs`）；下方樹狀圖為邏輯分組。
+
 ```
 Assets/
 ├── Scripts/
@@ -443,7 +462,8 @@ public class LevelConfig : ScriptableObject
 | --- | --- | --- |
 | v1.1 | 2026 | 原五關：以麵包為主 + 巡邏關 |
 | **v2.0** | **2026-04-24** | **小鵝愛麵包／偷麵包背景**；**第零關開局**；**關卡 1～4 重排（麵包 + 抓鵝回巢）**；**第五關暫緩**；**巡邏改後續更新**；**小鵝動畫與 AI（游動、扶正、臉部 LookAt）** |
+| （補述） | 2026-04-30 | **Slogan**；**有限制移動**（`GunGestureLocomotion` + 脖子門檻 `NeckSplineController`） |
 
 ---
 
-*文件版本：v2.0　最後更新：2026-04-24*
+*文件版本：v2.0　最後更新：2026-04-30*
