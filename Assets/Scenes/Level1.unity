@@ -1714,14 +1714,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1597258224}
     m_Modifications:
-    - target: {fileID: 405204327284165129, guid: 5b9ef41af7d61fe49894df2c1529a7d4, type: 3}
-      propertyPath: onLevelClear.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 1764594543}
-    - target: {fileID: 405204327284165129, guid: 5b9ef41af7d61fe49894df2c1529a7d4, type: 3}
-      propertyPath: onLevelClear.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnLevelClear
-      objectReference: {fileID: 0}
     - target: {fileID: 4471556340049824600, guid: 5b9ef41af7d61fe49894df2c1529a7d4, type: 3}
       propertyPath: m_Name
       value: Nest
@@ -2289,7 +2281,7 @@ GameObject:
   m_Component:
   - component: {fileID: 518784887}
   m_Layer: 0
-  m_Name: UI
+  m_Name: UI_result
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7509,10 +7501,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: daa17652645d260458c61de2642fbba4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  clearUI: {fileID: 379409309}
-  failUI: {fileID: 5942352356537546052}
-  nest: {fileID: 0}
-  breads: []
+  clearUIPrefab: {fileID: 5942352356208557289, guid: 45892d25b9ec1764793f70728d85895d, type: 3}
+  failUIPrefab: {fileID: 4196602304520527484, guid: 701d023890d65b0419087d95e6488607, type: 3}
   failResetDelay: 3
   clearNextDelay: 4
 --- !u!4 &1764594544

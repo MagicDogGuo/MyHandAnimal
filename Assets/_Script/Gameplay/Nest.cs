@@ -12,7 +12,8 @@ using UnityEngine.Serialization;
 /// 麵包流程：
 ///   1. 進入 Trigger → <c>_pendingBreads</c>；2. 放手（<c>!IsHeld</c>）→ 入巢計分
 /// 小鵝流程：同上，且 <c>LittleGoose.countsTowardsGoal == false</c> 者（如第零關裝飾鵝）不進等待／計分。
-/// 兩者皆以 <c>HashSet</c> 去重。外部呼叫 <see cref="ResetNest"/> 清空狀態。
+/// 兩者皆以 <c>HashSet</c> 去重。達標時會自動呼叫 <see cref="GameManager.OnLevelClear"/>；
+/// <see cref="onLevelClear"/> 僅供額外監聽。外部呼叫 <see cref="ResetNest"/> 清空狀態。
 /// </summary>
 [RequireComponent(typeof(SphereCollider))]
 public class Nest : MonoBehaviour
@@ -25,8 +26,8 @@ public class Nest : MonoBehaviour
     [Tooltip("需要幾隻小鵝送達（第零關 = 0、第三關 = 3；僅「計分用」小鵝會累加）。")]
     public int requiredGoose = 0;
 
-    [Tooltip("達標時觸發（接上 GameManager.OnLevelClear 或直接驅動 ClearUI）")]
-    public UnityEvent onLevelClear;
+    [Tooltip("達標時額外觸發（已自動呼叫 GameManager.OnLevelClear；此欄位可加其他監聽）")]
+    UnityEvent onLevelClear;
 
     [Header("入巢動畫")]
     [Tooltip("麵包落入巢中心的隨機散佈半徑（m）")]
@@ -100,6 +101,7 @@ public class Nest : MonoBehaviour
     {
         if (_breadDelivered < requiredBread || _gooseDelivered < requiredGoose) return;
         _levelCleared = true;
+        GameManager.Instance?.OnLevelClear();
         onLevelClear.Invoke();
     }
 

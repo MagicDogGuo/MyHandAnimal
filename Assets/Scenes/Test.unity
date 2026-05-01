@@ -2476,19 +2476,7 @@ MonoBehaviour:
   requiredCount: 1
   onLevelClear:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1764594543}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: OnLevelClear
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
   pileSpreadRadius: 0.05
   snapDuration: 0.15
 --- !u!135 &801067767
@@ -7602,10 +7590,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: daa17652645d260458c61de2642fbba4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  clearUI: {fileID: 1284653838}
-  failUI: {fileID: 5942352356537546052}
-  nest: {fileID: 801067766}
-  breads: []
+  clearUIPrefab: {fileID: 5942352356208557289, guid: 45892d25b9ec1764793f70728d85895d, type: 3}
+  failUIPrefab: {fileID: 4196602304520527484, guid: 701d023890d65b0419087d95e6488607, type: 3}
   failResetDelay: 1.5
   clearNextDelay: 2
 --- !u!4 &1764594544
