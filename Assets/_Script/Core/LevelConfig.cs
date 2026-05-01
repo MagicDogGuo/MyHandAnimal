@@ -14,6 +14,11 @@ public class LevelConfig : ScriptableObject
     [Tooltip("該關所需小鵝送達數")]
     public int gooseToWin;
 
+    [Header("介面／提示")]
+    [Tooltip("該關顯示於 UI 的提示文字（可由 LevelHintTMPFromConfig 綁定 TMP）")]
+    [TextArea(2, 6)]
+    public string levelHintText;
+
     [Header("功能開關")]
     [Tooltip("第零／一關等可啟用引導箭頭")]
     public bool hasTutorialArrow;
@@ -27,7 +32,7 @@ public class LevelConfig : ScriptableObject
     [Tooltip("巡邏員 — 預設關閉，App 後續更新再開")]
     public bool hasPatrolGuard;
 
-    [Header("生成 / 場景層（若由程式生小鵝可參考）")]
+    [Header("生成 / 場景層（若由程式生小鵝可參考） 目前無用")]
     [Tooltip("預期場景內小鵝隻數，供關卡設計參考（非必自動生成）")]
     public int gooseSpawnCount;
 
