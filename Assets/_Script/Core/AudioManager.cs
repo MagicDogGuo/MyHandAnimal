@@ -4,12 +4,12 @@ using UnityEngine;
 /// 音效管理單例，負責 BGM 與共用 SFX。
 ///
 /// 職責：
-///   - BGM：循環播放背景音樂；可淡入淡出切換
+///   - BGM：單首時循環；若設定 bgmClip2 則兩首輪流接續播；換曲時可用 bgmFadeDuration 做淡入淡出
 ///   - SFX：過關 / 失敗、左手張開鵝叫、小鵝／麵包拿起等（由各遊戲腳本呼叫）
 ///
 /// Scene 設置：
 ///   1. 建立空 GameObject 命名 "AudioManager"，掛上此腳本
-///   2. Inspector 拖入 bgmClip、clearClip、failClip、handOpenGooseHonkClip、littleGoosePickupClip、breadPickupClip
+///   2. Inspector 拖入 bgmClip（必填若要有 BGM）、選填 bgmClip2（兩首時交替）、clearClip、failClip …
 ///   3. 選填：調整 bgmVolume / sfxVolume
 ///
 /// 接線：
@@ -22,8 +22,11 @@ public class AudioManager : MonoBehaviour
 
     // ── Inspector ──────────────────────────────────────────────────────────
     [Header("BGM")]
-    [Tooltip("背景音樂 AudioClip（循環播放）")]
+    [Tooltip("第一首背景音樂；若設定了 bgmClip2，則播完會接第二首，兩首輪替")]
     public AudioClip bgmClip;
+
+    [Tooltip("第二首背景音樂；留空時僅循環播放 bgmClip")]
+    public AudioClip bgmClip2;
 
     [Range(0f, 1f)]
     public float bgmVolume = 0.5f;
@@ -56,6 +59,7 @@ public class AudioManager : MonoBehaviour
     private AudioSource _sfxSource;
 
     private Coroutine _fadeCoroutine;
+    private Coroutine _bgmAlternateRoutine;
 
     // ─────────────────────────────────────────────────────────────────────
     void Awake()
@@ -74,18 +78,50 @@ public class AudioManager : MonoBehaviour
 
     void Start()
     {
-        PlayBGM(bgmClip);
+        if (bgmClip != null && bgmClip2 != null)
+            StartAlternateBgm();
+        else if (bgmClip != null)
+            PlayBGM(bgmClip);
+        else if (bgmClip2 != null)
+            PlayBGM(bgmClip2);
     }
 
     // ── BGM ────────────────────────────────────────────────────────────────
 
-    /// <summary>播放指定 BGM（帶淡入；若已播放相同曲目則忽略）。</summary>
+    void StopAlternateBgmRoutine()
+    {
+        if (_bgmAlternateRoutine == null)
+            return;
+        StopCoroutine(_bgmAlternateRoutine);
+        _bgmAlternateRoutine = null;
+    }
+
+    /// <summary>從頭開始輪播 bgmClip → bgmClip2 → bgmClip → …（兩首都需指定）</summary>
+    public void StartAlternateBgm()
+    {
+        if (bgmClip == null || bgmClip2 == null)
+        {
+            Debug.LogWarning("[AudioManager] StartAlternateBgm 需要同時設定 bgmClip 與 bgmClip2。");
+            return;
+        }
+
+        StopAlternateBgmRoutine();
+        if (_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
+
+        _bgmAlternateRoutine = StartCoroutine(BgmAlternateLoop());
+    }
+
+    /// <summary>播放指定 BGM（帶淡入；若已播放相同曲目則忽略）；會中止兩首輪播模式。</summary>
     public void PlayBGM(AudioClip clip)
     {
         if (clip == null) return;
+        StopAlternateBgmRoutine();
+
         if (_bgmSource.clip == clip && _bgmSource.isPlaying) return;
 
         if (_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
+
+        _bgmSource.loop = true;
 
         if (bgmFadeDuration > 0f)
             _fadeCoroutine = StartCoroutine(CrossFadeBGM(clip));
@@ -100,6 +136,7 @@ public class AudioManager : MonoBehaviour
     /// <summary>停止 BGM（帶淡出）。</summary>
     public void StopBGM()
     {
+        StopAlternateBgmRoutine();
         if (_fadeCoroutine != null) StopCoroutine(_fadeCoroutine);
 
         if (bgmFadeDuration > 0f)
@@ -173,6 +210,62 @@ public class AudioManager : MonoBehaviour
         src.volume     = volume;
         src.playOnAwake = false;
         return src;
+    }
+
+    private System.Collections.IEnumerator BgmAlternateLoop()
+    {
+        _bgmSource.loop = false;
+        var clips = new[] { bgmClip, bgmClip2 };
+        var i     = 0;
+
+        while (enabled)
+        {
+            AudioClip next = clips[i % clips.Length];
+            if (next == null)
+                yield break;
+
+            if (_fadeCoroutine != null)
+            {
+                StopCoroutine(_fadeCoroutine);
+                _fadeCoroutine = null;
+            }
+
+            if (bgmFadeDuration > 0f)
+            {
+                if (_bgmSource.isPlaying)
+                {
+                    float halfOut = bgmFadeDuration * 0.5f;
+                    yield return FadeOut(_bgmSource, halfOut);
+                }
+
+                _bgmSource.clip   = next;
+                _bgmSource.volume = 0f;
+                _bgmSource.Play();
+
+                float fin   = bgmFadeDuration * 0.5f;
+                float tFade = 0f;
+                while (tFade < fin)
+                {
+                    tFade += Time.unscaledDeltaTime;
+                    _bgmSource.volume = Mathf.Lerp(0f, bgmVolume, tFade / fin);
+                    yield return null;
+                }
+
+                _bgmSource.volume = bgmVolume;
+            }
+            else
+            {
+                _bgmSource.clip   = next;
+                _bgmSource.volume = bgmVolume;
+                _bgmSource.Play();
+            }
+
+            float pitch       = Mathf.Max(0.01f, _bgmSource.pitch);
+            float fadeInHalf = bgmFadeDuration > 0f ? bgmFadeDuration * 0.5f : 0f;
+            yield return new WaitForSecondsRealtime(
+                Mathf.Max(0.05f, next.length / pitch - fadeInHalf));
+            i++;
+        }
     }
 
     private System.Collections.IEnumerator CrossFadeBGM(AudioClip newClip)
