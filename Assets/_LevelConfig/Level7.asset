@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54a999f483d4726408f10cf6080d4caf, type: 3}
-  m_Name: Level2
+  m_Name: Level7
   m_EditorClassIdentifier: 
-  breadToWin: 2
-  gooseToWin: 2
-  levelHintText: Put 2 breads and take 2 little geese to the nest to pass the level
+  breadToWin: 0
+  gooseToWin: 3
+  levelHintText: Take 3 little geese to the nest to pass the level
   hasTutorialArrow: 0
   hasHook: 0
   hasMovingPlatform: 1

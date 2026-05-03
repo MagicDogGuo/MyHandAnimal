@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   breadToWin: 3
   gooseToWin: 0
-  levelHintText: 123u82
+  levelHintText: Put 3 breads in the nest to pass the level
   hasTutorialArrow: 0
   hasHook: 1
   hasMovingPlatform: 0

@@ -2251,10 +2251,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fca136eb9609044bb3949aca103e686, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  LastLevelIndex: 0
+  LastLevelIndex: 7
   levelConfigs:
   - {fileID: 11400000, guid: 79e74e6cba1123e47989382eeb774597, type: 2}
   - {fileID: 11400000, guid: 630944283aacb9b49a04ca1b19a44893, type: 2}
+  - {fileID: 11400000, guid: 33d1923e358996c4994eb09a2339de4f, type: 2}
+  - {fileID: 11400000, guid: 45cb375f4ef79de4f88155f95be40439, type: 2}
+  - {fileID: 11400000, guid: c0870f0ba74e1554289cce1ecb1938ae, type: 2}
+  - {fileID: 11400000, guid: 7c96244617b38eb4bb1aa72fc7dff070, type: 2}
+  - {fileID: 11400000, guid: c879ad24eeff92440b22d810b29a8eb5, type: 2}
+  - {fileID: 11400000, guid: 82aa448b5f0de0842af5fadb4a1c5f8f, type: 2}
   endingSceneName: Ending
   logLevelFlow: 1
 --- !u!4 &943884593
@@ -7571,6 +7577,9 @@ SceneRoots:
   - {fileID: 850586839}
   - {fileID: 870495500}
   - {fileID: 1597258224}
+  - {fileID: 1444734175732744809}
+  - {fileID: 3716303930457078983}
+  - {fileID: 4271823501717981309}
   - {fileID: 1821829892634870120}
   - {fileID: 1235594518}
   - {fileID: 561875357}
@@ -7580,6 +7589,3 @@ SceneRoots:
   - {fileID: 1764594544}
   - {fileID: 943884593}
   - {fileID: 111842406}
-  - {fileID: 1444734175732744809}
-  - {fileID: 3716303930457078983}
-  - {fileID: 4271823501717981309}
