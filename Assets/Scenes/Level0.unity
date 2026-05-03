@@ -2254,7 +2254,6 @@ MonoBehaviour:
   levelConfigs:
   - {fileID: 11400000, guid: 79e74e6cba1123e47989382eeb774597, type: 2}
   - {fileID: 11400000, guid: 630944283aacb9b49a04ca1b19a44893, type: 2}
-  - {fileID: 11400000, guid: 33d1923e358996c4994eb09a2339de4f, type: 2}
   endingSceneName: Ending
   logLevelFlow: 1
 --- !u!4 &943884593
@@ -3027,8 +3026,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Point to move
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3f379f397baa80c4d87f563a4dc60e97, type: 2}
+  m_sharedMaterial: {fileID: -1480790697809861345, guid: 3f379f397baa80c4d87f563a4dc60e97, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -5221,7 +5220,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f964ea53dd28254eacbe62635eb9104, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bgmClip: {fileID: 8300000, guid: 2223addebb45d56449e7743106910468, type: 3}
+  bgmClip: {fileID: 8300000, guid: ba508d8c9abdebc4b9a010a00f47e672, type: 3}
+  bgmClip2: {fileID: 8300000, guid: aafaed5bfb32e4046bf4f7978c9da511, type: 3}
   bgmVolume: 0.3
   bgmFadeDuration: 1
   clearClip: {fileID: 8300000, guid: f677bbaea57f32740a414af4c880a583, type: 3}
@@ -7381,8 +7381,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Pinch to grab
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3f379f397baa80c4d87f563a4dc60e97, type: 2}
+  m_sharedMaterial: {fileID: -1480790697809861345, guid: 3f379f397baa80c4d87f563a4dc60e97, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

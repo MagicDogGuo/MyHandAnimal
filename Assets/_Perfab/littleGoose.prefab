@@ -939,7 +939,7 @@ MonoBehaviour:
   disableGravityInWater: 1
   edgeNudgeStrength: 2.5
   kinematicSwim: 1
-  swimCastRadius: 0
+  swimCastRadius: 0.29
   swimObstacleMask:
     serializedVersion: 2
     m_Bits: 4294967295

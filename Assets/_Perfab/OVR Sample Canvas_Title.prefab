@@ -142,8 +142,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Clear all the levels and become a proper mum goose!
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 2e498d1c8094910479dc3e1b768306a4, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 2e498d1c8094910479dc3e1b768306a4, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3f379f397baa80c4d87f563a4dc60e97, type: 2}
+  m_sharedMaterial: {fileID: -1480790697809861345, guid: 3f379f397baa80c4d87f563a4dc60e97, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -611,7 +611,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &8428351257518719103
 RectTransform:
   m_ObjectHideFlags: 0
@@ -764,8 +764,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: My Hand is a Goose
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 2e498d1c8094910479dc3e1b768306a4, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 2e498d1c8094910479dc3e1b768306a4, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3f379f397baa80c4d87f563a4dc60e97, type: 2}
+  m_sharedMaterial: {fileID: -1480790697809861345, guid: 3f379f397baa80c4d87f563a4dc60e97, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
