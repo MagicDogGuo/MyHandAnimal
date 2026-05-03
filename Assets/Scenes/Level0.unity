@@ -4398,7 +4398,7 @@ MonoBehaviour:
   bgmClip: {fileID: 8300000, guid: 2223addebb45d56449e7743106910468, type: 3}
   bgmVolume: 0.3
   bgmFadeDuration: 1
-  clearClip: {fileID: 8300000, guid: 82fa1abb08f098547941cd016eef555e, type: 3}
+  clearClip: {fileID: 8300000, guid: f677bbaea57f32740a414af4c880a583, type: 3}
   failClip: {fileID: 8300000, guid: 0d9d48d835f45bb41973f7b23702e401, type: 3}
   handOpenGooseHonkClip: {fileID: 8300000, guid: 4f9e1ed6cbd36a749b93f262a9d085f8, type: 3}
   littleGoosePickupClip: {fileID: 8300000, guid: bb6e3f47d020e064ebe074336c3b6264, type: 3}
