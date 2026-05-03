@@ -1608,8 +1608,8 @@ MonoBehaviour:
   indexExtendedMinDist: 0.12
   activationFrames: 3
   moveSpeed: 0.5
-  accelerationTime: 0.3
-  decelerationTime: 0.2
+  accelerationTime: 0
+  decelerationTime: 0
   horizontalOnly: 1
   neckSpline: {fileID: 286171379}
   arrowPrefab: {fileID: 2532869665634253185, guid: 4516444141781a44fae2f4da3a7e06a1, type: 3}

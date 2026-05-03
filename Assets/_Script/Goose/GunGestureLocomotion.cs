@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using Oculus.Interaction.Input;
 using Oculus.Interaction.Locomotion;
 
@@ -19,6 +21,7 @@ using Oculus.Interaction.Locomotion;
 ///   1. 將此腳本掛在 [BuildingBlock] Camera Rig GameObject 上。
 ///   2. hand → OVRInteractionComprehensive / OVRHands / RightHand 上的 Hand 元件。
 ///   3. （可選）arrowPrefab → 移動時顯示在右手食指指尖前方、朝向移動方向的箭頭。
+///   4. （可選）URP XR 相機開啟 Post Processing；Volume Profile 含 Vignette → 可依移動強度自動暗角遮蔽。
 /// </summary>
 public class GunGestureLocomotion : MonoBehaviour
 {
@@ -53,11 +56,11 @@ public class GunGestureLocomotion : MonoBehaviour
 
     [Tooltip("加速時間（秒）：值越小啟動越快")]
     [Range(0f, 2f)]
-    public float accelerationTime = 0.3f;
+    public float accelerationTime = 0f;
 
     [Tooltip("減速時間（秒）：值越小停止越快")]
     [Range(0f, 2f)]
-    public float decelerationTime = 0.2f;
+    public float decelerationTime = 0f;
 
     [Tooltip("啟用後只在水平面（XZ）移動，忽略食指的上下傾斜")]
     public bool horizontalOnly = true;
@@ -75,6 +78,21 @@ public class GunGestureLocomotion : MonoBehaviour
     [Tooltip("沿移動方向、自食指指尖再往前偏移（公尺），避免與指尖重疊")]
     [SerializeField]
     private float arrowTipForwardOffset = 0.02f;
+
+    [Header("移動視野遮蔽（URP Vignette，可選）")]
+    [Tooltip("啟用時依移動速度比例動態調整全域 Volume 的 Vignette 強度（減輕vection）。需 XR Camera 開啟 Post Processing，且 Volume Profile 須包含 Vignette")]
+    public bool locomotionVignetteEnabled = true;
+
+    [Tooltip("含 Vignette 的 Volume（通常為場景中的 Global Volume）。未指定時於 Awake 只有場景恰有一個 Volume 時才會自動指定")]
+    [SerializeField]
+    private Volume locomotionVolume;
+
+    [Tooltip("速度比例達 1 時的暗角強度（0 時只靠 Profile；全速時與快照靜止強度線性混合）")]
+    [Range(0f, 1f)]
+    public float vignetteIntensityAtFullSpeed = 0.8f;
+
+    [Tooltip("暗角強度趨近目標的時間常數（秒），越大過渡越慢；0 表示每幀直接貼齊")]
+    public float vignetteSmoothingSeconds = 0.08f;
 
     // ── 除錯 ──────────────────────────────────────────────────────────────
     [Header("除錯")]
@@ -97,6 +115,9 @@ public class GunGestureLocomotion : MonoBehaviour
     private bool  _isMoving = false;
     private FirstPersonLocomotor _locomotor;
     private GameObject _arrowInstance;
+    private Vignette _locomotionVignette;
+    private float _vignetteIntensitySmoothed;
+    private float _vignetteRestSnapshot;
 
 #if UNITY_EDITOR
     [Header("Editor 除錯（僅在 Editor 中可用）")]
@@ -116,6 +137,13 @@ public class GunGestureLocomotion : MonoBehaviour
             neckSpline = FindFirstObjectByType<NeckSplineController>(FindObjectsInactive.Exclude);
 
         EnsureArrowInstance();
+
+        ResolveLocomotionVignetteReferences();
+    }
+
+    void OnDisable()
+    {
+        ApplyImmediateVignetteRest();
     }
 
     void OnDestroy()
@@ -145,6 +173,8 @@ public class GunGestureLocomotion : MonoBehaviour
             DecelerateAndStop();
             debugBlockedByNeck = false;
             SetArrowActive(false);
+            debugSpeedRatio = _currentSpeedRatio;
+            UpdateLocomotionVignette();
             return;
         }
 
@@ -193,6 +223,74 @@ public class GunGestureLocomotion : MonoBehaviour
         debugSpeedRatio = _currentSpeedRatio;
 
         UpdateArrowIndicator(neckAllowsMove);
+        UpdateLocomotionVignette();
+    }
+
+    void ResolveLocomotionVignetteReferences()
+    {
+        _locomotionVignette = null;
+
+        if (!locomotionVignetteEnabled) return;
+
+        Volume vol = locomotionVolume;
+        if (vol == null)
+        {
+            var allVolumes = FindObjectsByType<Volume>(FindObjectsSortMode.None);
+            if (allVolumes.Length == 1)
+                vol = allVolumes[0];
+            else if (allVolumes.Length > 1)
+                Debug.LogWarning("[GunGesture] 場景中有複數 Volume，請在 Inspector 指定 locomotionVolume 以套用移動視野遮蔽。");
+
+            locomotionVolume = vol;
+        }
+
+        if (vol == null || vol.profile == null)
+        {
+            Debug.LogWarning("[GunGesture] 找不到 Volume 或其 Profile，移動視野遮蔽已停用。");
+            locomotionVignetteEnabled = false;
+            return;
+        }
+
+        if (!vol.profile.TryGet(out _locomotionVignette))
+        {
+            Debug.LogWarning($"[GunGesture] Volume 「{vol.name}」的 Profile 未加入 Vignette，移動視野遮蔽已停用。");
+            _locomotionVignette = null;
+            locomotionVignetteEnabled = false;
+            return;
+        }
+
+        vignetteIntensityAtFullSpeed = Mathf.Clamp01(vignetteIntensityAtFullSpeed);
+        _vignetteRestSnapshot = Mathf.Clamp01(_locomotionVignette.intensity.value);
+        _vignetteIntensitySmoothed = _vignetteRestSnapshot;
+        _locomotionVignette.intensity.overrideState = true;
+    }
+
+    void UpdateLocomotionVignette()
+    {
+        if (!locomotionVignetteEnabled || _locomotionVignette == null)
+            return;
+
+        float target = Mathf.Lerp(_vignetteRestSnapshot, vignetteIntensityAtFullSpeed, _currentSpeedRatio);
+        target = Mathf.Clamp01(target);
+
+        if (vignetteSmoothingSeconds <= Mathf.Epsilon)
+            _vignetteIntensitySmoothed = target;
+        else
+        {
+            float t = 1f - Mathf.Exp(-Time.deltaTime / vignetteSmoothingSeconds);
+            _vignetteIntensitySmoothed = Mathf.Lerp(_vignetteIntensitySmoothed, target, t);
+        }
+
+        _locomotionVignette.intensity.value = Mathf.Clamp01(_vignetteIntensitySmoothed);
+    }
+
+    void ApplyImmediateVignetteRest()
+    {
+        if (_locomotionVignette == null) return;
+
+        float r = _vignetteRestSnapshot;
+        _vignetteIntensitySmoothed = r;
+        _locomotionVignette.intensity.value = Mathf.Clamp01(r);
     }
 
     // ── 箭頭指示 ──────────────────────────────────────────────────────────
