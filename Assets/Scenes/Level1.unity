@@ -1492,6 +1492,8 @@ MonoBehaviour:
   decelerationTime: 0.2
   horizontalOnly: 1
   neckSpline: {fileID: 1821829892634870121}
+  arrowPrefab: {fileID: 2532869665634253185, guid: 4516444141781a44fae2f4da3a7e06a1, type: 3}
+  arrowTipForwardOffset: 0.02
   debugLog: 0
   debugIsGunGesture: 0
   debugSpeedRatio: 0

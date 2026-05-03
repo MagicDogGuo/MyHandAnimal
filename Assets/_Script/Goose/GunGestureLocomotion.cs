@@ -18,6 +18,7 @@ using Oculus.Interaction.Locomotion;
 /// 場景設定：
 ///   1. 將此腳本掛在 [BuildingBlock] Camera Rig GameObject 上。
 ///   2. hand → OVRInteractionComprehensive / OVRHands / RightHand 上的 Hand 元件。
+///   3. （可選）arrowPrefab → 移動時顯示在右手食指指尖前方、朝向移動方向的箭頭。
 /// </summary>
 public class GunGestureLocomotion : MonoBehaviour
 {
@@ -66,6 +67,15 @@ public class GunGestureLocomotion : MonoBehaviour
     [SerializeField]
     private NeckSplineController neckSpline;
 
+    [Header("移動視覺（可選）")]
+    [Tooltip("槍手勢觸發並實際移動時，顯示於右手食指指尖旁的箭頭 Prefab（未指定則不顯示）")]
+    [SerializeField]
+    private GameObject arrowPrefab;
+
+    [Tooltip("沿移動方向、自食指指尖再往前偏移（公尺），避免與指尖重疊")]
+    [SerializeField]
+    private float arrowTipForwardOffset = 0.02f;
+
     // ── 除錯 ──────────────────────────────────────────────────────────────
     [Header("除錯")]
     [Tooltip("啟用後在 Console 輸出手勢偵測資訊")]
@@ -86,6 +96,7 @@ public class GunGestureLocomotion : MonoBehaviour
     private int   _gestureFrameCount = 0;
     private bool  _isMoving = false;
     private FirstPersonLocomotor _locomotor;
+    private GameObject _arrowInstance;
 
 #if UNITY_EDITOR
     [Header("Editor 除錯（僅在 Editor 中可用）")]
@@ -103,6 +114,17 @@ public class GunGestureLocomotion : MonoBehaviour
 
         if (neckSpline == null)
             neckSpline = FindFirstObjectByType<NeckSplineController>(FindObjectsInactive.Exclude);
+
+        EnsureArrowInstance();
+    }
+
+    void OnDestroy()
+    {
+        if (_arrowInstance != null)
+        {
+            Destroy(_arrowInstance);
+            _arrowInstance = null;
+        }
     }
 
     void Update()
@@ -122,6 +144,7 @@ public class GunGestureLocomotion : MonoBehaviour
         {
             DecelerateAndStop();
             debugBlockedByNeck = false;
+            SetArrowActive(false);
             return;
         }
 
@@ -168,6 +191,42 @@ public class GunGestureLocomotion : MonoBehaviour
         }
 
         debugSpeedRatio = _currentSpeedRatio;
+
+        UpdateArrowIndicator(neckAllowsMove);
+    }
+
+    // ── 箭頭指示 ──────────────────────────────────────────────────────────
+    void EnsureArrowInstance()
+    {
+        if (arrowPrefab == null || _arrowInstance != null) return;
+        _arrowInstance = Instantiate(arrowPrefab);
+        _arrowInstance.name = $"{nameof(GunGestureLocomotion)}_Arrow";
+        _arrowInstance.SetActive(false);
+    }
+
+    void SetArrowActive(bool active)
+    {
+        if (_arrowInstance != null)
+            _arrowInstance.SetActive(active);
+    }
+
+    void UpdateArrowIndicator(bool neckAllowsMove)
+    {
+        if (arrowPrefab == null || _arrowInstance == null) return;
+
+        bool show = _isMoving && neckAllowsMove && _hand != null && _hand.IsConnected;
+        if (!show || !_hand.GetJointPose(HandJointId.HandIndexTip, out Pose tipPose))
+        {
+            SetArrowActive(false);
+            return;
+        }
+
+        Vector3 dir = GetIndexFingerDirection();
+        Transform t = _arrowInstance.transform;
+        t.SetPositionAndRotation(
+            tipPose.position + dir * arrowTipForwardOffset,
+            dir.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(dir) : t.rotation);
+        SetArrowActive(true);
     }
 
     // ── 手勢偵測 ──────────────────────────────────────────────────────────
