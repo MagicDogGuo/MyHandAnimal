@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 public class LevelManager : MonoBehaviour
 {
     public const int FirstLevelIndex  = 0;
-    public const int LastLevelIndex   = 4;   // 主線 0～4，第五關本階段可不做
+    public int LastLevelIndex   = 4;   // 主線 0～4，第五關本階段可不做
     public const int MainLevelCount   = 5;   // 0,1,2,3,4
 
     public static LevelManager Instance { get; private set; }
